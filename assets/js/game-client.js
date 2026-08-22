@@ -43,12 +43,12 @@ const CIA = (() => {
     return new Promise((resolve) => socket.emit("observar", {}, resolve));
   }
 
-  function unirse(nombre, color) {
+  function unirse(nombre, color, personaje) {
     const sesionPrevia = obtenerSesion();
-    const payload = { nombre, color, jugadorId: sesionPrevia ? sesionPrevia.jugadorId : undefined };
+    const payload = { nombre, color, personaje, jugadorId: sesionPrevia ? sesionPrevia.jugadorId : undefined };
     return new Promise((resolve) => {
       socket.emit("unirse", payload, (respuesta) => {
-        if (respuesta.ok) guardarSesion({ jugadorId: respuesta.jugadorId, nombre, color });
+        if (respuesta.ok) guardarSesion({ jugadorId: respuesta.jugadorId, nombre, color, personaje });
         resolve(respuesta);
       });
     });
@@ -62,6 +62,14 @@ const CIA = (() => {
 
   function mover(dr, dc) {
     socket.emit("mover", { dr, dc });
+  }
+
+  function atacar(dr, dc) {
+    socket.emit("atacar", { dr, dc });
+  }
+
+  function defender() {
+    socket.emit("defender");
   }
 
   function marcar(celdaId, marca) {
@@ -98,6 +106,8 @@ const CIA = (() => {
     unirse,
     reclamarSesion,
     mover,
+    atacar,
+    defender,
     marcar,
     cambiarColorCelda,
     reiniciarPartida,

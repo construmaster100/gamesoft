@@ -15,9 +15,16 @@
     <section class="login-card">
       <span class="topbar-eyebrow">CIA · Cancha Interactiva Asincrónica</span>
       <h1 class="login-title">Entra a la cancha «CR7»</h1>
-      <p class="login-sub">Elige tu nombre y tu color. Todos los jugadores conectados comparten la misma cancha de 70 casillas en tiempo real.</p>
+      <p class="login-sub">Elige tu personaje, confirma tu tarjeta y entra a la cancha compartida.</p>
 
-      <form id="login-form" class="login-form">
+      <section class="character-step" id="character-step">
+        <span class="login-label">1. Elige tu personaje</span>
+        <div class="character-grid" id="character-grid" role="radiogroup" aria-label="Selección de personaje"></div>
+        <button type="button" class="login-submit character-confirm" id="character-confirm" disabled>Confirmar personaje</button>
+      </section>
+
+      <form id="login-form" class="login-form" hidden>
+        <span class="login-label">2. Datos de jugador</span>
         <label class="login-label" for="nombre-input">Nombre de usuario</label>
         <input id="nombre-input" class="login-input" type="text" maxlength="20" placeholder="Ej: CARLOS" autocomplete="off" required>
 
@@ -43,6 +50,9 @@
   <script src="assets/js/game-client.js"></script>
   <script>
     const colorGrid = document.getElementById("color-grid");
+    const characterGrid = document.getElementById("character-grid");
+    const characterStep = document.getElementById("character-step");
+    const characterConfirm = document.getElementById("character-confirm");
     const form = document.getElementById("login-form");
     const nombreInput = document.getElementById("nombre-input");
     const errorEl = document.getElementById("login-error");
@@ -52,6 +62,38 @@
 
     let paleta = [];
     let colorElegido = null;
+    let personajeElegido = null;
+
+    const personajes = ["BLUE", "GREEN", "ORANGE", "PINK", "SILVER"];
+    const nombresPersonajes = {
+      BLUE: "Blue",
+      GREEN: "Green",
+      ORANGE: "Orange",
+      PINK: "Pink",
+      SILVER: "Silver",
+    };
+
+    personajes.forEach((personaje) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "character-card";
+      card.setAttribute("role", "radio");
+      card.setAttribute("aria-label", nombresPersonajes[personaje]);
+      card.innerHTML = `<img src="assets/img/pj/SELECCION%20DE%20PJ/${personaje}.JPG" alt=""><span>${nombresPersonajes[personaje]}</span>`;
+      card.addEventListener("click", () => {
+        personajeElegido = personaje;
+        [...characterGrid.children].forEach((el) => el.classList.remove("is-selected"));
+        card.classList.add("is-selected");
+        characterConfirm.disabled = false;
+      });
+      characterGrid.appendChild(card);
+    });
+
+    characterConfirm.addEventListener("click", () => {
+      characterStep.hidden = true;
+      form.hidden = false;
+      nombreInput.focus();
+    });
 
     function coloresTomados(jugadores) {
       return new Set(jugadores.filter((j) => j.conectado).map((j) => j.color));
@@ -133,7 +175,7 @@
         return;
       }
       submitBtn.disabled = true;
-      const respuesta = await CIA.unirse(nombre, colorElegido);
+      const respuesta = await CIA.unirse(nombre, colorElegido, personajeElegido);
       submitBtn.disabled = false;
       if (!respuesta.ok) {
         errorEl.textContent = respuesta.motivo || "No se pudo entrar a la cancha.";

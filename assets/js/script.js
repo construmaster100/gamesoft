@@ -51,12 +51,12 @@ function blockBBox(r, c, rSpan, cSpan) {
   };
 }
 
-const VIEW_ROWS = Math.min(3, ROWS);
-const VIEW_COLS = Math.min(4, COLS);
+const VIEW_ROWS = 3;
+const VIEW_COLS = 4;
 
 function viewportOrigin(r, c) {
-  const rWin = Math.max(0, Math.min(r - Math.floor((VIEW_ROWS - 1) / 2), ROWS - VIEW_ROWS));
-  const cWin = Math.max(0, Math.min(c - Math.floor((VIEW_COLS - 1) / 2), COLS - VIEW_COLS));
+  const rWin = Math.max(0, Math.min(r - 1, ROWS - VIEW_ROWS));
+  const cWin = Math.max(0, Math.min(c - 1, COLS - VIEW_COLS));
   return { rWin, cWin };
 }
 
@@ -64,6 +64,7 @@ function viewportBBox(r, c) {
   const { rWin, cWin } = viewportOrigin(r, c);
   return blockBBox(rWin, cWin, VIEW_ROWS, VIEW_COLS);
 }
+
 function bboxToViewBox(b) {
   return `${b.minX.toFixed(2)} ${b.minY.toFixed(2)} ${(b.maxX - b.minX).toFixed(2)} ${(b.maxY - b.minY).toFixed(2)}`;
 }
@@ -106,7 +107,7 @@ function drawPitchTexture() {
   const clip = el("clipPath", { id: "field-clip" }, defs);
   el("polygon", { points: pointsToStr([QUAD.TL, QUAD.TR, QUAD.BR, QUAD.BL]) }, clip);
   el("image", {
-    href: "../assets/img/CANCHA%20FUTBOL/CANCHA%20VACIA.png",
+    href: "../assets/img/CANCHA%20FUTBOL/grilla%207x10.png",
     x: 0, y: 0, width: 1000, height: 562.5,
     preserveAspectRatio: "none",
     "clip-path": "url(#field-clip)",
@@ -161,9 +162,9 @@ function pintarCelda(celda) {
 /* Marcadores de los demás jugadores sobre el propio SVG                  */
 /* ---------------------------------------------------------------------- */
 const marcadoresJugadores = new Map();
+const PERSONAJE_SRC = (personaje) => `../assets/img/pj/PERSONAJE/${personaje || "BLUE"}.png`;
 
 function actualizarMarcadorJugador(jugador) {
-  if (jugador.id === miJugadorId) return;
   let marcador = marcadoresJugadores.get(jugador.id);
   if (!jugador.conectado) {
     if (marcador) { marcador.remove(); marcadoresJugadores.delete(jugador.id); }
@@ -171,16 +172,17 @@ function actualizarMarcadorJugador(jugador) {
   }
   const centro = cellCenter(jugador.fila, jugador.columna);
   if (!marcador) {
-    marcador = el("circle", { r: 10, class: "player-marker" }, playersGroup);
+    marcador = el("image", { width: 34, height: 34, class: "player-marker" }, playersGroup);
     marcadoresJugadores.set(jugador.id, marcador);
   }
-  marcador.setAttribute("cx", centro.x);
-  marcador.setAttribute("cy", centro.y);
-  marcador.setAttribute("fill", paletaPorId[jugador.color] || "#999");
+  marcador.setAttribute("x", centro.x - 17);
+  marcador.setAttribute("y", centro.y - 17);
+  marcador.setAttribute("href", PERSONAJE_SRC(jugador.personaje));
+  marcador.setAttribute("preserveAspectRatio", "xMidYMid meet");
 }
 
 /* ---------------------------------------------------------------------- */
-/* Animación: recuadro activo (highlight) + viewport de cámara            */
+/* Selección de la casilla activa                                        */
 /* ---------------------------------------------------------------------- */
 let active = { r: 3, c: 4 };
 let highlightPts = cellCorners(active.r, active.c);
@@ -220,34 +222,72 @@ function tweenViewportTo(newBBox) {
   }, () => { currentBBox = newBBox; });
 }
 
-/* ---------------------------------------------------------------------- */
-/* Controles de paneo                                                     */
-/* ---------------------------------------------------------------------- */
 const DIRS = {
-  up:    { dr: -1, dc: 0 },
-  down:  { dr:  1, dc: 0 },
-  left:  { dr:  0, dc: -1 },
-  right: { dr:  0, dc:  1 },
+  up: { dr: -1, dc: 0 }, down: { dr: 1, dc: 0 },
+  left: { dr: 0, dc: -1 }, right: { dr: 0, dc: 1 },
 };
-
 const panButtons = {
-  up:    document.getElementById("pan-up"),
-  down:  document.getElementById("pan-down"),
-  left:  document.getElementById("pan-left"),
-  right: document.getElementById("pan-right"),
+  up: document.getElementById("pan-up"), down: document.getElementById("pan-down"),
+  left: document.getElementById("pan-left"), right: document.getElementById("pan-right"),
 };
-
 Object.entries(DIRS).forEach(([name, { dr, dc }]) => {
   panButtons[name].addEventListener("click", () => requestMove(dr, dc));
 });
-
 function refreshPanButtons() {
   Object.entries(DIRS).forEach(([name, { dr, dc }]) => {
     const nr = active.r + dr, nc = active.c + dc;
-    const valid = nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS;
-    panButtons[name].classList.toggle("is-visible", valid);
+    panButtons[name].classList.toggle("is-visible", nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS);
   });
 }
+
+const gallery = document.getElementById("image-gallery");
+const galleryImage = document.getElementById("gallery-image");
+const galleryCell = document.getElementById("gallery-cell");
+const galleryCounter = document.getElementById("gallery-counter");
+let galleryIndex = 0;
+
+const SERIES_IMAGES = [
+  "../assets/img/CANCHA%20FUTBOL/grilla%207x10.png",
+  "../assets/img/CANCHA%20FUTBOL/CANCHA%20VACIA.png",
+  "../assets/img/CANCHA%20FUTBOL/cancha%20medidas.png",
+];
+const seriesPorCelda = Array.from({ length: ROWS * COLS }, () => SERIES_IMAGES);
+
+function actualizarGaleria() {
+  const serie = seriesPorCelda[zoneNumber(active.r, active.c) - 1] || SERIES_IMAGES;
+  galleryImage.src = serie[galleryIndex];
+  galleryImage.alt = `Imagen ${galleryIndex + 1} de la casilla ${zoneNumber(active.r, active.c)}`;
+  galleryCell.textContent = `Casilla ${zoneNumber(active.r, active.c)} · Fila ${active.r + 1}, columna ${active.c + 1}`;
+  galleryCounter.textContent = `${galleryIndex + 1} / ${serie.length}`;
+}
+
+function abrirGaleria() {
+  galleryIndex = 0;
+  actualizarGaleria();
+  gallery.hidden = false;
+}
+
+function seleccionarCelda(r, c) {
+  const dr = r - active.r;
+  const dc = c - active.c;
+  if (Math.abs(dr) + Math.abs(dc) === 1) CIA.mover(dr, dc);
+  active = { r, c };
+  tweenHighlightTo(cellCorners(r, c));
+  refreshStatus();
+  abrirGaleria();
+}
+
+document.getElementById("gallery-close").addEventListener("click", () => { gallery.hidden = true; });
+document.getElementById("gallery-prev").addEventListener("click", () => {
+  const serie = seriesPorCelda[zoneNumber(active.r, active.c) - 1] || SERIES_IMAGES;
+  galleryIndex = (galleryIndex - 1 + serie.length) % serie.length;
+  actualizarGaleria();
+});
+document.getElementById("gallery-next").addEventListener("click", () => {
+  const serie = seriesPorCelda[zoneNumber(active.r, active.c) - 1] || SERIES_IMAGES;
+  galleryIndex = (galleryIndex + 1) % serie.length;
+  actualizarGaleria();
+});
 
 /* ---------------------------------------------------------------------- */
 /* Estado / UI                                                            */
@@ -261,6 +301,8 @@ const minimapZoneEl = document.getElementById("minimap-zone");
 const minimapPlayersEl = document.getElementById("minimap-players");
 const playerNameEl = document.getElementById("player-name");
 const playerScoreEl = document.getElementById("player-score");
+const playerHealthBarEl = document.getElementById("player-health-bar");
+const playerHealthEl = document.getElementById("player-health");
 const playerColorDotEl = document.getElementById("player-color-dot");
 const playersListEl = document.getElementById("players-list");
 const playersCountEl = document.getElementById("players-count");
@@ -277,9 +319,8 @@ function refreshStatus() {
   zoneCoordsEl.textContent = coordsText;
   zoneDescEl.textContent = `${zoneDescription(active.r, active.c)} · celda ${n} de ${ROWS * COLS}`;
 
-  const { rWin, cWin } = viewportOrigin(active.r, active.c);
-  minimapLocationEl.style.left = `${(cWin / COLS) * 100}%`;
-  minimapLocationEl.style.top = `${(rWin / ROWS) * 100}%`;
+  minimapLocationEl.style.left = `${(active.c / COLS) * 100}%`;
+  minimapLocationEl.style.top = `${(active.r / ROWS) * 100}%`;
   minimapCoordsEl.textContent = coordsText;
   minimapZoneEl.textContent = `ZONA ${n} / ${ROWS * COLS}`;
 }
@@ -307,10 +348,18 @@ function renderPlayersList() {
     li.className = j.id === miJugadorId ? "is-self" : "";
     li.innerHTML = `<span class="color-dot" style="background:${paletaPorId[j.color] || "#999"}"></span>
       <span class="players-list-name">${j.nombre}${j.id === miJugadorId ? " (tú)" : ""}</span>
+      <span class="players-list-health">${j.vida ?? 20}/20 HP</span>
       <span class="players-list-score">${j.score}</span>`;
     playersListEl.appendChild(li);
   });
   refreshMinimapMarkers();
+}
+
+function refreshOwnHealth(vida = 20) {
+  const actual = Math.max(0, Math.min(20, vida));
+  playerHealthBarEl.style.width = `${actual * 5}%`;
+  playerHealthBarEl.style.background = actual <= 5 ? "#e23c2f" : actual <= 10 ? "#ef6c1a" : "#2f9e44";
+  playerHealthEl.textContent = `${actual} / 20 HP`;
 }
 
 function renderTop5(top5) {
@@ -328,7 +377,12 @@ function applyOwnPosition(r, c) {
   active = { r, c };
   tweenHighlightTo(cellCorners(r, c));
   tweenViewportTo(viewportBBox(r, c));
-  refreshPanButtons();
+  const jugador = jugadoresMap.get(miJugadorId);
+  if (jugador) {
+    jugador.fila = r;
+    jugador.columna = c;
+    actualizarMarcadorJugador(jugador);
+  }
   refreshStatus();
   refreshMinimapMarkers();
 }
@@ -384,6 +438,7 @@ async function iniciar() {
   refreshStatus();
 
   playerScoreEl.textContent = miJugador.score;
+  refreshOwnHealth(miJugador.vida);
   renderPlayersList();
   renderTop5(estado.top5);
 
@@ -407,6 +462,7 @@ function conectarEventos() {
   CIA.socket.on("jugador_actualizado", (jugador) => {
     jugadoresMap.set(jugador.id, { ...jugadoresMap.get(jugador.id), ...jugador });
     if (jugador.id === miJugadorId) playerScoreEl.textContent = jugador.score;
+    if (jugador.id === miJugadorId) refreshOwnHealth(jugador.vida);
     renderPlayersList();
   });
 
@@ -434,6 +490,8 @@ function conectarEventos() {
   CIA.socket.on("estado_inicial", () => window.location.reload());
 }
 
+let ultimaDireccion = { dr: 0, dc: 1 };
+
 document.addEventListener("keydown", (e) => {
   const moveMap = {
     ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
@@ -442,11 +500,23 @@ document.addEventListener("keydown", (e) => {
   if (moveMap[e.code]) {
     e.preventDefault();
     const { dr, dc } = DIRS[moveMap[e.code]];
+    ultimaDireccion = { dr, dc };
     requestMove(dr, dc);
     return;
   }
-  if (e.code === "KeyX") { e.preventDefault(); CIA.marcar(zoneNumber(active.r, active.c), "X"); return; }
-  if (e.code === "KeyO") { e.preventDefault(); CIA.marcar(zoneNumber(active.r, active.c), "O"); return; }
+  if (e.code === "Escape") { gallery.hidden = true; return; }
+  if (e.code === "KeyX") {
+    e.preventDefault();
+    CIA.marcar(zoneNumber(active.r, active.c), "X");
+    CIA.atacar(ultimaDireccion.dr, ultimaDireccion.dc);
+    return;
+  }
+  if (e.code === "KeyO") {
+    e.preventDefault();
+    CIA.marcar(zoneNumber(active.r, active.c), "O");
+    CIA.defender();
+    return;
+  }
   if (e.code === "Space") { e.preventDefault(); CIA.cambiarColorCelda(zoneNumber(active.r, active.c)); return; }
 });
 

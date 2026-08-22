@@ -11,6 +11,10 @@ const PUNTOS_POR_CELDA = 3;
 const PENALIZACION_PUNTOS = 2;
 const TOP_N = 15;
 const MS_ANTES_DE_LIBERAR_COLOR = 8000;
+const VIDA_MAXIMA = 20;
+const DANIO_ATAQUE = 5;
+const DURACION_DEFENSA_MS = 900;
+const PERSONAJES = new Set(["BLUE", "GREEN", "ORANGE", "PINK", "SILVER"]);
 
 const PALETA = [
   { id: "rojo", nombre: "Rojo", hex: "#e63946" },
@@ -66,6 +70,9 @@ class GameState {
         id: doc.id,
         nombre: doc.nombre,
         color: doc.color,
+        personaje: PERSONAJES.has(doc.personaje) ? doc.personaje : "BLUE",
+        vida: Number.isFinite(doc.vida) ? Math.max(0, Math.min(VIDA_MAXIMA, doc.vida)) : VIDA_MAXIMA,
+        defendiendoHasta: 0,
         fila: doc.fila,
         columna: doc.columna,
         score: doc.score,
@@ -93,6 +100,8 @@ class GameState {
         id: jugador.id,
         nombre: jugador.nombre,
         color: jugador.color,
+        personaje: jugador.personaje,
+        vida: jugador.vida,
         fila: jugador.fila,
         columna: jugador.columna,
         score: jugador.score,
@@ -123,8 +132,8 @@ class GameState {
   }
 
   serializarJugador(jugador) {
-    const { id, nombre, color, fila, columna, score, conectado, ultimaAccion } = jugador;
-    return { id, nombre, color, fila, columna, score, conectado, ultimaAccion };
+    const { id, nombre, color, personaje, fila, columna, score, vida, conectado, ultimaAccion } = jugador;
+    return { id, nombre, color, personaje, fila, columna, score, vida, conectado, ultimaAccion };
   }
 
   serializarEstado() {
@@ -144,7 +153,7 @@ class GameState {
       .map((j) => ({ id: j.id, nombre: j.nombre, color: j.color, score: j.score }));
   }
 
-  unirse({ nombre, color, jugadorId, socketId }) {
+  unirse({ nombre, color, personaje, jugadorId, socketId }) {
     if (jugadorId && this.jugadores.has(jugadorId)) {
       const jugador = this.jugadores.get(jugadorId);
       const timer = this.timersDesconexion.get(jugadorId);
@@ -154,6 +163,7 @@ class GameState {
       }
       jugador.conectado = true;
       jugador.socketId = socketId;
+      if (PERSONAJES.has(personaje)) jugador.personaje = personaje;
       jugador.ultimaAccion = Date.now();
       return { ok: true, jugador, esNuevo: false };
     }
@@ -170,6 +180,9 @@ class GameState {
       id: crypto.randomUUID(),
       nombre: nombreLimpio,
       color,
+      personaje: PERSONAJES.has(personaje) ? personaje : "BLUE",
+      vida: VIDA_MAXIMA,
+      defendiendoHasta: 0,
       fila: Math.floor(Math.random() * ROWS),
       columna: Math.floor(Math.random() * COLS),
       score: 0,
@@ -211,6 +224,32 @@ class GameState {
     jugador.columna = nc;
     jugador.ultimaAccion = Date.now();
     return { ok: true, jugador };
+  }
+
+  defender(jugadorId) {
+    const jugador = this.jugadores.get(jugadorId);
+    if (!jugador || !jugador.conectado) return { ok: false };
+    jugador.defendiendoHasta = Date.now() + DURACION_DEFENSA_MS;
+    return { ok: true, jugador };
+  }
+
+  atacar(jugadorId, dr, dc) {
+    const atacante = this.jugadores.get(jugadorId);
+    if (!atacante || !atacante.conectado) return { ok: false };
+    if (Math.abs(dr) + Math.abs(dc) !== 1) return { ok: false };
+
+    const objetivo = [...this.jugadores.values()].find((jugador) =>
+      jugador.conectado && jugador.id !== jugadorId &&
+      jugador.fila === atacante.fila + dr && jugador.columna === atacante.columna + dc
+    );
+    if (!objetivo) return { ok: true, impacto: false };
+
+    const bloqueado = objetivo.defendiendoHasta > Date.now();
+    if (!bloqueado) {
+      objetivo.vida = Math.max(0, objetivo.vida - DANIO_ATAQUE);
+      this._guardarJugador(objetivo);
+    }
+    return { ok: true, impacto: true, bloqueado, atacante, objetivo, danio: bloqueado ? 0 : DANIO_ATAQUE };
   }
 
   marcar(jugadorId, celdaId, marca) {

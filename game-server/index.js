@@ -24,8 +24,8 @@ io.on("connection", (socket) => {
     if (typeof cb === "function") cb(estado.serializarEstado());
   });
 
-  socket.on("unirse", ({ nombre, color, jugadorId } = {}, cb) => {
-    const resultado = estado.unirse({ nombre, color, jugadorId, socketId: socket.id });
+  socket.on("unirse", ({ nombre, color, personaje, jugadorId } = {}, cb) => {
+    const resultado = estado.unirse({ nombre, color, personaje, jugadorId, socketId: socket.id });
     if (!resultado.ok) {
       if (typeof cb === "function") cb({ ok: false, motivo: resultado.motivo });
       return;
@@ -54,6 +54,24 @@ io.on("connection", (socket) => {
       fila: resultado.jugador.fila,
       columna: resultado.jugador.columna,
     });
+  });
+
+  socket.on("defender", () => {
+    const resultado = estado.defender(socket.data.jugadorId);
+    if (resultado.ok) io.to("sala-1").emit("jugador_defendiendo", { id: resultado.jugador.id });
+  });
+
+  socket.on("atacar", ({ dr, dc } = {}) => {
+    const resultado = estado.atacar(socket.data.jugadorId, Number(dr) || 0, Number(dc) || 0);
+    if (!resultado.ok || !resultado.impacto) return;
+    io.to("sala-1").emit("ataque_resuelto", {
+      atacanteId: resultado.atacante.id,
+      objetivoId: resultado.objetivo.id,
+      bloqueado: resultado.bloqueado,
+      danio: resultado.danio,
+      vida: resultado.objetivo.vida,
+    });
+    io.to("sala-1").emit("jugador_actualizado", estado.serializarJugador(resultado.objetivo));
   });
 
   socket.on("marcar", ({ celdaId, marca } = {}) => {
