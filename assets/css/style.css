@@ -577,8 +577,9 @@ html,body{
   padding: clamp(16px, 4vw, 48px);
 }
 
-.login-card{
-  background: var(--tarjeta);
+.card.login-card{
+  background-color: #ffffff;
+  opacity: 1;
   border-radius:18px;
   box-shadow: var(--sombra);
   border:1px solid rgba(23,34,43,.08);
