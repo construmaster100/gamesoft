@@ -351,7 +351,11 @@ function dispararPickup(pickup, dr, dc) {
   let yaAnotoEsteDisparo = false;
   function paso() {
     const nr = pickup.r + dr, nc = pickup.c + dc;
-    if (pasos >= pickup.distanciaDisparo || nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) {
+    // El balón nunca puede quedar parado en una casilla del marco Ω
+    // (decorativo, sin cell-hit) salvo que sea justo la casilla de gol —
+    // si no, quedaria en una celda a la que el jugador jamas puede navegar.
+    const dentroDeCancha = nr >= 1 && nr <= INNER_ROWS && nc >= 1 && nc <= INNER_COLS;
+    if (pasos >= pickup.distanciaDisparo || (!dentroDeCancha && !cruzaLineaDeMeta(nr, nc))) {
       pickup.enMovimiento = false;
       actualizarPickups();
       return;
