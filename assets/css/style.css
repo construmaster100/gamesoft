@@ -545,7 +545,7 @@ html,body{
 .login-body{
   overflow:auto;
   background-image: linear-gradient(rgba(7,20,12,.35), rgba(7,20,12,.35)), url("../img/portada.png");
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-attachment: fixed;
   background-repeat: no-repeat;
