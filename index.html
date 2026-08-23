@@ -45,15 +45,18 @@
       </div>
 
       <div class="col-12 col-lg-6">
-        <aside class="card login-card login-lobby h-100">
-          <div class="card-body">
-            <div class="minimap-heading">
-              <span>Sala de espera</span>
-              <span id="lobby-count">0 conectados</span>
+        <div class="side-stack">
+          <img id="portada" src="assets/img/portada.jpg" onerror="this.onerror=null;this.src='assets/img/portada.png';" alt="Portada" class="card login-card side-stack-image">
+          <aside class="card login-card login-lobby side-stack-lobby">
+            <div class="card-body">
+              <div class="minimap-heading">
+                <span>Sala de espera</span>
+                <span id="lobby-count">0 conectados</span>
+              </div>
+              <ul id="lobby-list" class="lobby-list"></ul>
             </div>
-            <ul id="lobby-list" class="lobby-list"></ul>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
 
       <div class="col-12">

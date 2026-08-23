@@ -70,7 +70,6 @@ const markGroup       = el("g", {}, sceneGroup);
 const highlightGroup  = el("g", {}, sceneGroup);
 const playersGroup    = el("g", {}, sceneGroup);
 const pickupGroup     = el("g", {}, sceneGroup);
-const samplePlayersGroup = el("g", {}, sceneGroup);
 const labelsGroup     = el("g", {}, sceneGroup);
 const movementGroup   = el("g", { class: "movement-controls" }, sceneGroup);
 
@@ -258,11 +257,13 @@ const PERSONAJE_SRC = "assets/img/pj/PERSONAJE/ORANGE.png";
 let playerMarker = null;
 let navigationPoint = null;
 
+const MARCADOR_ZOOM = 1.35; // compensa el margen transparente de los PNG de personaje
+
 function actualizarMarcadorJugador(r, c) {
   const centro = cellCenter(r, c);
   const corners = cellCorners(r, c);
-  const cellWidth = corners[1].x - corners[0].x;
-  const cellHeight = corners[3].y - corners[0].y;
+  const cellWidth = (corners[1].x - corners[0].x) * MARCADOR_ZOOM;
+  const cellHeight = (corners[3].y - corners[0].y) * MARCADOR_ZOOM;
   if (!navigationPoint) {
     navigationPoint = el("circle", { r: 12, class: "navigation-point" }, playersGroup);
   }
@@ -274,8 +275,8 @@ function actualizarMarcadorJugador(r, c) {
       preserveAspectRatio: "none",
     }, playersGroup);
   }
-  playerMarker.setAttribute("x", corners[0].x);
-  playerMarker.setAttribute("y", corners[0].y);
+  playerMarker.setAttribute("x", centro.x - cellWidth / 2);
+  playerMarker.setAttribute("y", centro.y - cellHeight / 2);
   playerMarker.setAttribute("width", cellWidth);
   playerMarker.setAttribute("height", cellHeight);
   playersGroup.appendChild(navigationPoint);
@@ -325,37 +326,6 @@ function actualizarPickups() {
   });
 }
 
-function dibujarJugadoresDeMuestra() {
-  const samples = [
-    { row: 1, column: 2, color: "#2f6a8f", image: "BLUE.png", name: "Ana Ríos" },
-    { row: 2, column: 8, color: "#2f9e44", image: "GREEN.png", name: "Mateo Gómez" },
-    { row: 6, column: 5, color: "#d946ef", image: "PINK.png", name: "Sofía León" },
-  ];
-  samples.forEach(({ row, column, color, image, name }) => {
-    const corners = cellCorners(row, column);
-    const inset = 10;
-    el("rect", {
-      x: corners[0].x + inset,
-      y: corners[0].y + inset,
-      width: corners[1].x - corners[0].x - inset * 2,
-      height: corners[3].y - corners[0].y - inset * 2,
-      rx: 8,
-      fill: color,
-      class: "sample-player-backdrop",
-      "aria-label": `${name}, jugador de muestra`,
-    }, samplePlayersGroup);
-    el("image", {
-      x: corners[0].x + inset,
-      y: corners[0].y + inset,
-      width: corners[1].x - corners[0].x - inset * 2,
-      height: corners[3].y - corners[0].y - inset * 2,
-      href: `assets/img/pj/PERSONAJE/${image}`,
-      preserveAspectRatio: "xMidYMid meet",
-      class: "sample-player-image",
-      "aria-label": name,
-    }, samplePlayersGroup);
-  });
-}
 
 /* ---------------------------------------------------------------------- */
 /* Botones de movimiento contextuales alrededor de la celda activa        */
@@ -624,7 +594,6 @@ function dispararAtrapados(dr, dc) {
 function iniciar() {
   dibujarCancha();
   crearCeldas();
-  dibujarJugadoresDeMuestra();
   crearGradientesPickup();
   crearPickup({ r: 4, c: 6, forma: "circulo", colorClase: "pickup-blanco", puntosPorGol: 5, distanciaDisparo: 2, etiqueta: "Objeto balón" });
   crearPickup({ r: 4, c: 5, forma: "ovalo", colorClase: "pickup-amarillo", puntosPorGol: 7, distanciaDisparo: 3, etiqueta: "Objeto balón ovalado" });
