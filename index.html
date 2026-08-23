@@ -39,26 +39,25 @@
               <input id="nombre-input" class="login-input form-control" type="text" maxlength="20" placeholder="Ej: CARLOS" autocomplete="off" required>
 
               <p id="login-error" class="login-error" hidden></p>
-
-              <button type="submit" class="login-submit btn" id="login-submit">Entrar a la cancha</button>
             </form>
           </div>
         </div>
       </div>
 
       <div class="col-12 col-lg-6">
-        <div class="side-stack">
-          <img id="portada" src="assets/img/portada.png" alt="Portada" class="side-stack-image rounded shadow-sm">
-          <aside class="card login-card login-lobby side-stack-lobby">
-            <div class="card-body">
-              <div class="minimap-heading">
-                <span>Sala de espera</span>
-                <span id="lobby-count">0 conectados</span>
-              </div>
-              <ul id="lobby-list" class="lobby-list"></ul>
+        <aside class="card login-card login-lobby h-100">
+          <div class="card-body">
+            <div class="minimap-heading">
+              <span>Sala de espera</span>
+              <span id="lobby-count">0 conectados</span>
             </div>
-          </aside>
-        </div>
+            <ul id="lobby-list" class="lobby-list"></ul>
+          </div>
+        </aside>
+      </div>
+
+      <div class="col-12">
+        <button type="submit" form="login-form" class="login-submit btn" id="login-submit">Entrar a la cancha</button>
       </div>
     </div>
   </main>
