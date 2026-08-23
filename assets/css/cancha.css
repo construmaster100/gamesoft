@@ -39,8 +39,24 @@ html,body{
   display:flex;
   flex-wrap:wrap;
   gap:16px;
-  align-items:flex-end;
+  align-items:center;
   justify-content:space-between;
+  padding:10px 18px;
+  border-radius:14px;
+  background:#ffffff;
+  background-image:
+    radial-gradient(1.5px 1.5px at 6% 30%, #f4df16 100%, transparent),
+    radial-gradient(1.5px 1.5px at 14% 70%, #f47b20 100%, transparent),
+    radial-gradient(1.5px 1.5px at 24% 20%, #f4df16 100%, transparent),
+    radial-gradient(1.5px 1.5px at 34% 65%, #f47b20 100%, transparent),
+    radial-gradient(1.5px 1.5px at 44% 35%, #f4df16 100%, transparent),
+    radial-gradient(1.5px 1.5px at 56% 75%, #f47b20 100%, transparent),
+    radial-gradient(1.5px 1.5px at 66% 25%, #f4df16 100%, transparent),
+    radial-gradient(1.5px 1.5px at 76% 60%, #f47b20 100%, transparent),
+    radial-gradient(1.5px 1.5px at 86% 30%, #f4df16 100%, transparent),
+    radial-gradient(1.5px 1.5px at 94% 70%, #f47b20 100%, transparent);
+  border:1px solid rgba(23,34,43,.08);
+  box-shadow: var(--sombra);
 }
 .topbar-eyebrow{
   display:block;
@@ -53,6 +69,7 @@ html,body{
 }
 .topbar-title h1{
   margin:0;
+  color:#123d21;
   font-family:"Space Grotesk", sans-serif;
   font-weight:700;
   font-size: clamp(1.4rem, 2.6vw, 2.1rem);
@@ -389,10 +406,13 @@ html,body{
 .sidebar-panel{}
 
 /* ---------- Panel del jugador propio ---------- */
-.player-panel{
+.side-panel > .player-panel{
   display:flex;
   align-items:center;
   gap:10px;
+  background: rgba(7,20,12,.94);
+  border-color: rgba(255,255,255,.32);
+  color:#ffffff;
 }
 .player-panel-info{
   display:flex;
@@ -401,12 +421,14 @@ html,body{
   min-width:0;
   font-size:.86rem;
   font-weight:600;
+  color:#ffffff;
 }
 .player-panel-info .player-score{
   font-weight:500;
   font-size:.76rem;
-  color:#5b6b64;
+  color:#cbd5df;
 }
+.player-panel-info .player-score strong{ color:#facc15; }
 .color-dot{
   display:inline-block;
   width:14px;
