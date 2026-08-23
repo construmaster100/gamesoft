@@ -320,7 +320,7 @@ function crearPickup({ r, c, forma, colorClase, puntosPorGol, distanciaDisparo, 
     ? el("ellipse", { cx: center.x, cy: center.y, rx: radioBase * 1.4, ry: radioBase * 0.85, class: clase, "aria-label": etiqueta }, pickupGroup)
     : el("circle", { cx: center.x, cy: center.y, r: radioBase, class: clase, "aria-label": etiqueta }, pickupGroup);
 
-  pickups.push({ r, c, atrapado: false, enMovimiento: false, el: elemento, puntosPorGol, distanciaDisparo });
+  pickups.push({ r, c, rInicial: r, cInicial: c, atrapado: false, enMovimiento: false, el: elemento, puntosPorGol, distanciaDisparo });
 }
 
 function actualizarPickups() {
@@ -368,6 +368,16 @@ function dispararPickup(pickup, dr, dc) {
     if (!yaAnotoEsteDisparo && cruzaLineaDeMeta(nr, nc)) {
       yaAnotoEsteDisparo = true;
       sumarGol(pickup.puntosPorGol);
+      // Tras anotar, el balón vuelve a su casilla inicial en vez de quedarse
+      // parado en la celda de gol (dentro del marco Ω, sin cell-hit).
+      pickup.r = pickup.rInicial;
+      pickup.c = pickup.cInicial;
+      const inicio = cellCenter(pickup.rInicial, pickup.cInicial);
+      pickup.el.setAttribute("cx", inicio.x);
+      pickup.el.setAttribute("cy", inicio.y);
+      pickup.enMovimiento = false;
+      actualizarPickups();
+      return;
     }
     pasos += 1;
     setTimeout(paso, VELOCIDAD_MS);
