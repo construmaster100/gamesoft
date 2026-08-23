@@ -81,8 +81,6 @@ cancha CR7:
 
 - `pages/aprendiz.html`, `pages/instructor.html`, `docs/documentacion/` — la
   plataforma AVA SENA (LMS) y su documentación de requisitos (RF01–RF13).
-- `pages/Senacegafe/`, `pages/senacol/`, `pages/sena sofia/`, `pages/betowa/`,
-  `pages/Sennova/`, `pages/LMS/` — micrositios institucionales independientes.
 - `client/`, `shared/`, `server/sockets/` — una arquitectura modular más
   nueva del juego de cancha (entidades, física, colisiones), separada del
   `game-server/` que usa la versión actual desplegada.
