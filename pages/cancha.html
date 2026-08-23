@@ -3,34 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cancha «CR7» · CIA</title>
+<title>Cancha CR7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/css/cancha.css">
 </head>
 <body>
-
-  <div class="app">
-
-    <header class="topbar">
-      <div class="topbar-title">
-        <span class="topbar-eyebrow">CIA · Cancha Interactiva Asincrónica</span>
-        <h1>Cancha de fútbol — mapa navegable</h1>
-      </div>
-      <div class="topbar-status" id="status-panel">
-        <div class="status-zone">
-          <span class="status-label">Zona activa</span>
-          <span class="status-value" id="zone-number">—</span>
-        </div>
-        <div class="status-coords">
-          <span id="zone-coords">Fila — · Columna —</span>
-          <span id="zone-desc">—</span>
-        </div>
-      </div>
-    </header>
-
-    <main class="stage">
+  <main class="stage" id="main-content">
+      <header class="game-header">
+        <h1>CANCHA SINCRÓNICA INTERACTIVA <span>LA GUACHA</span></h1>
+        <button type="button" class="logout-btn" id="btn-salir" title="Salir de la cancha">Salir</button>
+      </header>
 
       <div class="field-frame" id="field-frame">
         <svg id="pitch-svg" viewBox="0 0 1672 941" preserveAspectRatio="none" role="img"
@@ -38,7 +22,7 @@
           <!-- La foto de fondo, la grilla y las celdas se montan por JavaScript. -->
         </svg>
 
-        <section class="image-gallery" id="image-gallery" hidden aria-label="Serie de imágenes de la casilla seleccionada">
+        <section class="image-gallery" id="image-gallery" hidden aria-label="Imagen de la casilla seleccionada">
           <button type="button" class="gallery-close" id="gallery-close" aria-label="Cerrar galería">×</button>
           <div class="gallery-heading">
             <span id="gallery-cell">Casilla —</span>
@@ -52,41 +36,32 @@
         </section>
       </div>
 
-      <aside class="side-panel">
+      <section class="bottom-dashboard" aria-label="Jugadores conectados">
+        <div class="score-panel connected-panel">
+          <div class="sample-players" id="sample-players"></div>
+        </div>
+      </section>
 
-        <div class="player-panel">
-          <span class="color-dot" id="player-color-dot"></span>
-          <div class="player-panel-info">
-            <span id="player-name">—</span>
-            <span class="player-score">Score: <strong id="player-score">0</strong></span>
+      <section class="footer-side-card" aria-label="Score">
+        <span class="footer-side-label">Score</span>
+        <strong id="footer-score">0</strong>
+      </section>
+
+      <aside class="score-sidebar" aria-label="Tabla de puntajes">
+        <div class="score-panel ranking-panel">
+          <div class="dashboard-heading">
+            <span>Tabla de puntajes</span>
+            <span>TOP 15</span>
           </div>
-          <button type="button" class="logout-btn" id="btn-salir" title="Salir de la cancha">Salir</button>
-        </div>
-
-        <div class="minimap-panel">
-          <div class="minimap-heading">
-            <span>Minimapa</span>
-            <span id="minimap-zone">ZONA — / 70</span>
+          <div class="table-scroll">
+            <table class="score-table">
+              <thead>
+                <tr><th>#</th><th>Jugador</th><th>Puntaje</th></tr>
+              </thead>
+              <tbody id="top5-list"></tbody>
+            </table>
           </div>
-          <button type="button" class="minimap" id="minimap" aria-label="Minimapa de la cancha completa, toca cualquier punto para saltar ahí">
-            <img src="../assets/img/CANCHA%20FUTBOL/grilla%207x10.png" alt="Vista completa de la cancha">
-            <span class="minimap-grid" aria-hidden="true"></span>
-            <div class="minimap-players" id="minimap-players"></div>
-            <span class="minimap-location" id="minimap-location" aria-hidden="true"></span>
-          </button>
-          <p class="minimap-coords" id="minimap-coords">Fila — · Columna —</p>
         </div>
-
-        <div class="sidebar-panel">
-          <div class="minimap-heading"><span>Jugadores conectados</span><span id="players-count">0</span></div>
-          <ul class="players-list" id="players-list"></ul>
-        </div>
-
-        <div class="sidebar-panel">
-          <div class="minimap-heading"><span>TOP 15 SCORES</span></div>
-          <ol class="top5-list" id="top5-list"></ol>
-        </div>
-
         <section class="character-photo-panel" aria-label="Foto del personaje">
           <div class="character-photo-col">
             <img id="character-photo-image" src="" alt="Personaje del usuario">
@@ -102,35 +77,40 @@
             </div>
           </div>
         </section>
-
-        <section class="conventions-panel sidebar-panel" aria-label="Instrucciones de la cancha">
+        <section class="conventions-panel" aria-label="Instrucciones de la cancha">
           <div class="dashboard-heading">
             <span>Instrucciones</span>
           </div>
           <ul class="conventions-list">
             <li><span class="convention-key">↑↓←→</span><span>Moverte por la grilla</span></li>
             <li><span class="convention-key">WASD</span><span>Moverte por la grilla</span></li>
-            <li><span class="convention-key">X</span><span>Lanzar balón atrapado</span></li>
+            <li><span class="convention-key">X</span><span>Lanzar balón(es) atrapado(s)</span></li>
             <li><span class="convention-swatch pickup-swatch pickup-swatch-amarillo"></span><span>Balón ovalado amarillo · 7 puntos</span></li>
             <li><span class="convention-swatch pickup-swatch pickup-swatch-blanco"></span><span>Balón circular blanco · 5 puntos</span></li>
             <li><span class="convention-swatch swatch-white-middle"></span><span>Línea de área · LA</span></li>
           </ul>
         </section>
-
       </aside>
 
-    </main>
+      <div class="reward-modal" id="reward-modal" hidden role="alertdialog" aria-label="Recompensa ganada">
+        <div class="reward-modal-box">
+          <span class="reward-modal-icon">🏆</span>
+          <span class="reward-modal-title">¡Has ganado una recompensa!</span>
+          <span class="reward-modal-sub" id="reward-modal-sub"></span>
+          <button type="button" class="reward-modal-close" id="reward-modal-close">Continuar</button>
+        </div>
+      </div>
 
-  </div>
-
-  <div class="reward-modal" id="reward-modal" hidden role="alertdialog" aria-label="Recompensa ganada">
-    <div class="reward-modal-box">
-      <span class="reward-modal-icon">🏆</span>
-      <span class="reward-modal-title">¡Has ganado una recompensa!</span>
-      <span class="reward-modal-sub" id="reward-modal-sub"></span>
-      <button type="button" class="reward-modal-close" id="reward-modal-close">Continuar</button>
-    </div>
-  </div>
+      <div class="runtime-status" aria-hidden="true">
+        <span id="zone-number">—</span>
+        <span id="zone-coords">Fila — · Columna —</span>
+        <span id="zone-desc">—</span>
+        <span id="minimap-zone">ZONA — / 70</span>
+        <span id="minimap-coords">Fila — · Columna —</span>
+        <button type="button" id="minimap" hidden aria-label="Minimapa"></button>
+        <span id="minimap-location"></span>
+        <span id="minimap-players"></span>
+      </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="../assets/js/game-client.js"></script>

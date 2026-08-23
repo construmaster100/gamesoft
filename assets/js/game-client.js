@@ -57,7 +57,7 @@ const CIA = (() => {
   function reclamarSesion() {
     const sesion = obtenerSesion();
     if (!sesion) return Promise.resolve({ ok: false, motivo: "Sin sesión guardada." });
-    return unirse(sesion.nombre, sesion.color);
+    return unirse(sesion.nombre, sesion.color, sesion.personaje);
   }
 
   function mover(dr, dc) {
