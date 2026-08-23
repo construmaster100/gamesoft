@@ -500,11 +500,8 @@ const minimapLocationEl = document.getElementById("minimap-location");
 const minimapCoordsEl = document.getElementById("minimap-coords");
 const minimapZoneEl = document.getElementById("minimap-zone");
 const minimapPlayersEl = document.getElementById("minimap-players");
-const playerNameEl = document.getElementById("player-name");
-const playerScoreEl = document.getElementById("player-score");
-const playerColorDotEl = document.getElementById("player-color-dot");
-const playersListEl = document.getElementById("players-list");
-const playersCountEl = document.getElementById("players-count");
+const footerScoreEl = document.getElementById("footer-score");
+const samplePlayersEl = document.getElementById("sample-players");
 const top5ListEl = document.getElementById("top5-list");
 const characterPhotoImageEl = document.getElementById("character-photo-image");
 const characterPhotoRegisteredEl = document.getElementById("character-photo-registered");
@@ -541,29 +538,32 @@ function refreshMinimapMarkers() {
   });
 }
 
-function renderPlayersList() {
+function renderPlayersRoster() {
   const conectados = [...jugadoresMap.values()].filter((j) => j.conectado);
-  playersCountEl.textContent = conectados.length;
-  playersListEl.innerHTML = "";
+  samplePlayersEl.innerHTML = "";
   conectados.forEach((j) => {
-    const li = document.createElement("li");
-    li.className = j.id === miJugadorId ? "is-self" : "";
-    li.innerHTML = `<span class="color-dot" style="background:${paletaPorId[j.color] || "#999"}"></span>
-      <span class="players-list-name">${j.nombre}${j.id === miJugadorId ? " (tú)" : ""}</span>
-      <span class="players-list-score">${j.score}</span>`;
-    playersListEl.appendChild(li);
+    const hex = paletaPorId[j.color] || "#999";
+    const esSelf = j.id === miJugadorId;
+    const card = document.createElement("div");
+    card.className = "player-bottom-card" + (esSelf ? " is-self" : "");
+    card.innerHTML = `
+      <div class="player-image-frame" style="border-color:${hex};background:${hex}">
+        <span class="player-color-choice" style="background:${hex}"></span>
+        <img src="${PERSONAJE_SRC(j.personaje)}" alt="Personaje de ${j.nombre}">
+      </div>
+      <div class="player-bottom-name"><span>${j.nombre}</span><span>${esSelf ? "(tú)" : ""}</span></div>
+      <div class="player-bottom-score"><span>Score</span><strong>${j.score}</strong></div>`;
+    samplePlayersEl.appendChild(card);
   });
   refreshMinimapMarkers();
 }
 
 function renderTop5(top5) {
   top5ListEl.innerHTML = "";
-  top5.forEach((j) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="color-dot" style="background:${paletaPorId[j.color] || "#999"}"></span>
-      <span class="players-list-name">${j.nombre}</span>
-      <span class="players-list-score">${j.score}</span>`;
-    top5ListEl.appendChild(li);
+  top5.forEach((j, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${index + 1}</td><td>${j.nombre}</td><td class="score-value">${j.score}</td>`;
+    top5ListEl.appendChild(tr);
   });
 }
 
@@ -621,8 +621,6 @@ async function iniciar() {
   estado.jugadores.forEach((j) => jugadoresMap.set(j.id, j));
 
   const miJugador = jugadoresMap.get(miJugadorId);
-  playerNameEl.textContent = miJugador.nombre;
-  playerColorDotEl.style.background = paletaPorId[miJugador.color] || "#999";
   characterPhotoImageEl.src = PERSONAJE_SRC(miJugador.personaje);
   characterPhotoRegisteredEl.textContent = miJugador.nombre;
   characterPhotoCharacterEl.textContent = miJugador.personaje;
@@ -644,8 +642,8 @@ async function iniciar() {
   refreshMovementButtons();
   actualizarPickups();
 
-  playerScoreEl.textContent = miJugador.score;
-  renderPlayersList();
+  footerScoreEl.textContent = miJugador.score;
+  renderPlayersRoster();
   renderTop5(estado.top5);
 
   conectarEventos();
@@ -665,8 +663,8 @@ function conectarEventos() {
 
   CIA.socket.on("jugador_actualizado", (jugador) => {
     jugadoresMap.set(jugador.id, { ...jugadoresMap.get(jugador.id), ...jugador });
-    if (jugador.id === miJugadorId) playerScoreEl.textContent = jugador.score;
-    renderPlayersList();
+    if (jugador.id === miJugadorId) footerScoreEl.textContent = jugador.score;
+    renderPlayersRoster();
   });
 
   CIA.socket.on("top5_actualizado", (top5) => renderTop5(top5));
@@ -674,20 +672,20 @@ function conectarEventos() {
   CIA.socket.on("jugador_nuevo", (jugador) => {
     jugadoresMap.set(jugador.id, jugador);
     actualizarMarcadorJugador(jugador);
-    renderPlayersList();
+    renderPlayersRoster();
   });
 
   CIA.socket.on("jugador_reconectado", (jugador) => {
     jugadoresMap.set(jugador.id, jugador);
     actualizarMarcadorJugador(jugador);
-    renderPlayersList();
+    renderPlayersRoster();
   });
 
   CIA.socket.on("jugador_desconectado", ({ id }) => {
     const j = jugadoresMap.get(id);
     if (j) j.conectado = false;
     actualizarMarcadorJugador(j || { id, conectado: false });
-    renderPlayersList();
+    renderPlayersRoster();
   });
 
   CIA.socket.on("estado_inicial", () => window.location.reload());
