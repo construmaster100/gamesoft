@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/cancha.css">
 </head>
 <body>
 
@@ -33,22 +33,10 @@
     <main class="stage">
 
       <div class="field-frame" id="field-frame">
-        <div class="field-margin" aria-hidden="true"></div>
-
-        <svg id="pitch-svg" viewBox="0 0 1000 562.5" preserveAspectRatio="none" role="img"
-             aria-label="Cancha de fútbol con grilla interactiva de 7 filas por 10 columnas">
-          <!-- La textura real, la grilla y las celdas se montan por JavaScript. -->
+        <svg id="pitch-svg" viewBox="0 0 1672 941" preserveAspectRatio="none" role="img"
+             aria-label="Cancha de fútbol con grilla interactiva de 7 filas por 10 columnas, con marco decorativo">
+          <!-- La foto de fondo, la grilla y las celdas se montan por JavaScript. -->
         </svg>
-
-        <div class="field-caption">
-          Imagen fija · grilla 7 × 10 · WASD / flechas para caminar
-        </div>
-
-        <div class="action-bar">
-          <button type="button" class="action-btn action-x" id="btn-mark-x">Marcar X</button>
-          <button type="button" class="action-btn action-o" id="btn-mark-o">Marcar O</button>
-          <button type="button" class="action-btn action-color" id="btn-color">Pintar celda (ESPACIO)</button>
-        </div>
 
         <section class="image-gallery" id="image-gallery" hidden aria-label="Serie de imágenes de la casilla seleccionada">
           <button type="button" class="gallery-close" id="gallery-close" aria-label="Cerrar galería">×</button>
@@ -71,8 +59,6 @@
           <div class="player-panel-info">
             <span id="player-name">—</span>
             <span class="player-score">Score: <strong id="player-score">0</strong></span>
-            <div class="health-bar" aria-label="Barra de vida"><span id="player-health-bar"></span></div>
-            <span class="health-label" id="player-health">20 / 20 HP</span>
           </div>
           <button type="button" class="logout-btn" id="btn-salir" title="Salir de la cancha">Salir</button>
         </div>
@@ -101,10 +87,49 @@
           <ol class="top5-list" id="top5-list"></ol>
         </div>
 
+        <section class="character-photo-panel" aria-label="Foto del personaje">
+          <div class="character-photo-col">
+            <img id="character-photo-image" src="" alt="Personaje del usuario">
+          </div>
+          <div class="character-photo-col character-photo-info">
+            <div class="character-photo-row">
+              <span class="character-photo-label">Jugador</span>
+              <span class="character-photo-value" id="character-photo-registered">—</span>
+            </div>
+            <div class="character-photo-row">
+              <span class="character-photo-label">Personaje</span>
+              <span class="character-photo-value" id="character-photo-character">—</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="conventions-panel sidebar-panel" aria-label="Instrucciones de la cancha">
+          <div class="dashboard-heading">
+            <span>Instrucciones</span>
+          </div>
+          <ul class="conventions-list">
+            <li><span class="convention-key">↑↓←→</span><span>Moverte por la grilla</span></li>
+            <li><span class="convention-key">WASD</span><span>Moverte por la grilla</span></li>
+            <li><span class="convention-key">X</span><span>Lanzar balón atrapado</span></li>
+            <li><span class="convention-swatch pickup-swatch pickup-swatch-amarillo"></span><span>Balón ovalado amarillo · 7 puntos</span></li>
+            <li><span class="convention-swatch pickup-swatch pickup-swatch-blanco"></span><span>Balón circular blanco · 5 puntos</span></li>
+            <li><span class="convention-swatch swatch-white-middle"></span><span>Línea de área · LA</span></li>
+          </ul>
+        </section>
+
       </aside>
 
     </main>
 
+  </div>
+
+  <div class="reward-modal" id="reward-modal" hidden role="alertdialog" aria-label="Recompensa ganada">
+    <div class="reward-modal-box">
+      <span class="reward-modal-icon">🏆</span>
+      <span class="reward-modal-title">¡Has ganado una recompensa!</span>
+      <span class="reward-modal-sub" id="reward-modal-sub"></span>
+      <button type="button" class="reward-modal-close" id="reward-modal-close">Continuar</button>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>

@@ -80,6 +80,10 @@ const CIA = (() => {
     socket.emit("cambiar_color_celda", { celdaId });
   }
 
+  function anotarGol(puntos) {
+    socket.emit("anotar_gol", { puntos });
+  }
+
   function reiniciarPartida() {
     socket.emit("admin_reiniciar");
   }
@@ -110,6 +114,7 @@ const CIA = (() => {
     defender,
     marcar,
     cambiarColorCelda,
+    anotarGol,
     reiniciarPartida,
   };
 })();

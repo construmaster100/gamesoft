@@ -1,0 +1,600 @@
+:root{
+  --azul: #2f6a8f;
+  --azul-osc: #234f6b;
+  --rojo: #e23c2f;
+  --verde-a: #2f9e44;
+  --verde-b: #278238;
+  --tinta: #17222b;
+  --papel: #eef2ee;
+  --tarjeta: #ffffff;
+  --sombra: 0 18px 40px -14px rgba(23,34,43,.35);
+  font-size: 16px;
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  background: var(--papel);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(47,106,143,.10), transparent 45%),
+    radial-gradient(circle at 88% 92%, rgba(226,60,47,.08), transparent 45%);
+  color: var(--tinta);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.app{
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  padding: clamp(10px, 1.4vw, 18px);
+  gap: clamp(10px, 1.4vw, 16px);
+}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  align-items:flex-end;
+  justify-content:space-between;
+}
+.topbar-eyebrow{
+  display:block;
+  font-size:.72rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: var(--azul-osc);
+  font-weight:600;
+  margin-bottom:4px;
+}
+.topbar-title h1{
+  margin:0;
+  font-family:"Space Grotesk", sans-serif;
+  font-weight:700;
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  letter-spacing:-.01em;
+}
+.topbar-status{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background: var(--tarjeta);
+  border:1px solid rgba(23,34,43,.08);
+  border-radius:14px;
+  padding:10px 18px;
+  box-shadow: var(--sombra);
+}
+.status-zone{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  line-height:1.05;
+  padding-right:14px;
+  border-right:1px solid rgba(23,34,43,.12);
+}
+.status-label{
+  font-size:.62rem;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:#6b7a72;
+}
+.status-value{
+  font-family:"Space Grotesk", sans-serif;
+  font-size:1.9rem;
+  font-weight:700;
+  color: var(--rojo);
+  transition: transform .25s ease;
+}
+.status-value.pulse{ transform: scale(1.28); }
+.status-coords{
+  display:flex;
+  flex-direction:column;
+  font-size:.85rem;
+}
+#zone-coords{ font-weight:600; }
+#zone-desc{ color:#5b6b64; font-size:.78rem; }
+
+/* ---------- Stage layout ---------- */
+.stage{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns: minmax(0,1fr) minmax(150px, 200px);
+  gap: clamp(10px, 1.4vw, 18px);
+  align-items:stretch;
+}
+@media (max-width: 720px){
+  .stage{ grid-template-columns: 1fr; }
+  .side-panel{ align-self:center; width:100%; max-width:280px; margin:0 auto; }
+}
+
+/* ---------- Field frame (el visor) ---------- */
+.field-frame{
+  position:relative;
+  min-height:0;
+  overflow:hidden;
+  background: var(--tarjeta);
+  border-radius:18px;
+  box-shadow: var(--sombra);
+  padding: clamp(8px, 1.4vw, 16px);
+  border: 1px solid rgba(23,34,43,.08);
+}
+
+#pitch-svg{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:none;
+  overflow:hidden;
+  touch-action: manipulation;
+  transition: filter .2s ease;
+}
+
+.movement-button{
+  cursor:pointer;
+  fill:#f4df16;
+  stroke:#161616;
+  stroke-width:1.5;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.65));
+  transform-box:fill-box;
+  transform-origin:center;
+  transition:filter .15s ease, opacity .15s ease, transform .12s ease;
+}
+.movement-button:hover{ filter:drop-shadow(0 3px 4px rgba(0,0,0,.8)) brightness(1.1); }
+.movement-button:active{ transform:scale(.9); }
+.movement-button.is-disabled{ opacity:.3; pointer-events:none; }
+
+.minimap-panel{}
+.minimap-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+  font-family:"Space Grotesk", sans-serif;
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+#minimap-zone{ color:var(--rojo); }
+.minimap{
+  position:relative;
+  display:block;
+  width:100%;
+  aspect-ratio:16 / 9;
+  padding:0;
+  overflow:hidden;
+  border:2px solid var(--azul-osc);
+  border-radius:9px;
+  background:#0b1118;
+  cursor:pointer;
+}
+.minimap img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.minimap-grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0, rgba(255,255,255,.55) 1px, transparent 1px, transparent calc(100% / 10)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.55) 0, rgba(255,255,255,.55) 1px, transparent 1px, transparent calc(100% / 7));
+  pointer-events:none;
+}
+.minimap-location{
+  position:absolute;
+  left:0;
+  top:0;
+  width: calc(100% / 10);
+  height: calc(100% / 7);
+  border:2px solid #fff;
+  outline:2px solid var(--rojo);
+  outline-offset:-2px;
+  background: rgba(226,60,47,.16);
+  box-shadow: 0 0 0 999px rgba(8,14,18,.5);
+  transition: left .32s cubic-bezier(.4,0,.2,1), top .32s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
+.minimap-coords{
+  margin:7px 0 0;
+  color:#5b6b64;
+  font-size:.76rem;
+  text-align:right;
+}
+
+/* ---------- SVG: cancha (foto aérea + capas vectoriales) ---------- */
+.cell-hit{
+  fill: rgba(255,255,255,0);
+  cursor: pointer;
+  transition: fill .15s ease;
+}
+.cell-hit:hover{ fill: rgba(255,255,255,.14); }
+
+.pitch-photo{ pointer-events:none; }
+
+.green-border{
+  fill:none;
+  stroke:#ffffff;
+  stroke-width:8;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.magenta-row-line{
+  stroke:#facc15;
+  stroke-width:2;
+  stroke-dasharray:8 6;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.center-cell-circle{
+  fill:none;
+  stroke:#ffffff;
+  stroke-width:5;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 5px rgba(217,70,239,.85));
+  pointer-events:none;
+}
+.custom-white-line{
+  stroke:#ffffff;
+  stroke-width:5;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.area-arc{
+  fill:none;
+  stroke:#ffffff;
+  stroke-width:5;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.yellow-side-line{
+  stroke:#facc15;
+  stroke-width:10;
+  filter:drop-shadow(0 0 5px #facc15) drop-shadow(0 0 10px rgba(250,204,21,.8));
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.cell-label{
+  fill:#ffffff;
+  font:700 18px "Space Grotesk", sans-serif;
+  paint-order:stroke;
+  stroke:#123d21;
+  stroke-width:5px;
+  stroke-linejoin:round;
+  pointer-events:none;
+  user-select:none;
+}
+
+.highlight-box{
+  fill: rgba(226,60,47,.14);
+  stroke: var(--rojo);
+  stroke-width:4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(226,60,47,.45));
+  pointer-events:none;
+  vector-effect: non-scaling-stroke;
+}
+
+.player-marker{
+  stroke:#fff;
+  stroke-width:2.5;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.45));
+  pointer-events:none;
+}
+
+/* ---------- Balones (pickup objects) — Fase 1, solo locales ---------- */
+.pickup-object{
+  stroke:#161616;
+  stroke-width:2.5;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  pointer-events:none;
+  transition: r .2s ease;
+}
+.pickup-object.pickup-blanco{ fill:url(#pickup-gradient-blanco); }
+.pickup-object.pickup-amarillo{ fill:url(#pickup-gradient-amarillo); }
+.pickup-object.is-pickup-caught{
+  stroke:#e2361f;
+  filter: drop-shadow(0 0 6px rgba(226,54,31,.85));
+}
+
+/* ---------- Galería de imágenes de la casilla ---------- */
+.image-gallery{
+  position:absolute;
+  z-index:5;
+  inset:clamp(22px, 5vw, 64px);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:14px;
+  background:rgba(12, 20, 24, .95);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:12px;
+  box-shadow:0 18px 42px rgba(0,0,0,.42);
+}
+.image-gallery[hidden]{ display:none; }
+.gallery-close,
+.gallery-btn{
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.1);
+  color:#fff;
+  cursor:pointer;
+  border-radius:7px;
+  font:700 1rem "Space Grotesk", sans-serif;
+}
+.gallery-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:32px;
+  height:32px;
+  font-size:1.4rem;
+  line-height:1;
+}
+.gallery-close:hover,
+.gallery-btn:hover{ background:rgba(255,255,255,.22); }
+.gallery-heading{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding-right:42px;
+  color:#fff;
+  font:600 .78rem "Space Grotesk", sans-serif;
+  letter-spacing:.04em;
+}
+.gallery-heading span:last-child{ color:#f2bd57; }
+#gallery-image{
+  width:100%;
+  min-height:0;
+  flex:1;
+  object-fit:contain;
+  border-radius:7px;
+  background:#05090b;
+}
+.gallery-controls{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+.gallery-btn{ width:42px; height:34px; }
+
+@media (max-width: 720px){
+  .image-gallery{ inset:12px; }
+}
+
+/* ---------- Side panel: banner lateral ---------- */
+.side-panel{
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:100%;
+  overflow-y:auto;
+}
+.side-panel > *{
+  background: var(--tarjeta);
+  border-radius:14px;
+  padding: 12px;
+  box-shadow: var(--sombra);
+  border:1px solid rgba(23,34,43,.08);
+}
+.sidebar-panel{}
+
+/* ---------- Panel del jugador propio ---------- */
+.player-panel{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.player-panel-info{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-width:0;
+  font-size:.86rem;
+  font-weight:600;
+}
+.player-panel-info .player-score{
+  font-weight:500;
+  font-size:.76rem;
+  color:#5b6b64;
+}
+.color-dot{
+  display:inline-block;
+  width:14px;
+  height:14px;
+  min-width:14px;
+  border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 0 0 1px rgba(23,34,43,.25);
+}
+.logout-btn{
+  border:1px solid rgba(23,34,43,.15);
+  background:#fff;
+  border-radius:8px;
+  padding:6px 10px;
+  font-size:.72rem;
+  font-weight:600;
+  cursor:pointer;
+  color: var(--tinta);
+}
+.logout-btn:hover{ background:#f3f3f3; }
+
+/* ---------- Marcadores del minimapa (otros jugadores) ---------- */
+.minimap-players{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+}
+.minimap-player-dot{
+  position:absolute;
+  width:9px;
+  height:9px;
+  margin:-4.5px;
+  border-radius:50%;
+  border:1.5px solid #fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4);
+}
+.minimap-player-dot.is-self{
+  width:12px;
+  height:12px;
+  margin:-6px;
+  outline:2px solid var(--rojo);
+  outline-offset:1px;
+}
+
+/* ---------- Listas: jugadores conectados / TOP ---------- */
+.players-list, .top5-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-height:180px;
+  overflow-y:auto;
+}
+.top5-list{ counter-reset: top5; }
+.top5-list li{ counter-increment: top5; }
+.top5-list li::before{
+  content: counter(top5);
+  font-weight:700;
+  color: var(--rojo);
+  width:14px;
+  text-align:center;
+}
+.players-list li, .top5-list li{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:.82rem;
+  padding:4px 6px;
+  border-radius:8px;
+}
+.players-list li.is-self{ background: rgba(47,106,143,.1); }
+.players-list-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.players-list-score{ font-weight:700; }
+
+/* ---------- Panel "Instrucciones" (nuevo) ---------- */
+.conventions-panel .dashboard-heading{ margin-bottom:4px; }
+.dashboard-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color: var(--azul-osc);
+  font:700 .78rem "Space Grotesk", sans-serif;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.conventions-list{ list-style:none; margin:0; padding:0; display:grid; gap:3px; }
+.conventions-list li{ display:flex; align-items:center; gap:7px; min-width:0; font-size:.67rem; line-height:1.15; }
+.convention-swatch{ display:inline-block; flex:0 0 24px; width:24px; background:#123d21; }
+.convention-key{ flex:0 0 24px; width:24px; color:#123d21; font:700 .6rem "Space Grotesk", sans-serif; text-align:center; }
+.swatch-white-middle{ height:4px; border-top:4px solid var(--tinta); }
+.pickup-swatch{
+  flex:0 0 18px;
+  width:18px;
+  height:14px;
+  border:1.5px solid #161616;
+}
+.pickup-swatch-blanco{
+  border-radius:50%;
+  background: radial-gradient(circle at 35% 32%, #ffffff 0%, #dfe2e5 55%, #8a9096 100%);
+}
+.pickup-swatch-amarillo{
+  border-radius:50%/38%;
+  background: radial-gradient(circle at 35% 32%, #fffbe0 0%, #f4df16 55%, #a8860a 100%);
+}
+
+/* ---------- Card "Foto del personaje" (nuevo) ---------- */
+.character-photo-panel{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.character-photo-col{ min-width:0; min-height:0; }
+.character-photo-col:first-child{ flex:0 0 40%; display:flex; align-items:center; justify-content:center; }
+.character-photo-panel img{
+  max-width:100%;
+  max-height:80px;
+  object-fit:contain;
+}
+.character-photo-info{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.character-photo-row{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.character-photo-label{
+  font-size:.6rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#5b6b64;
+  font-weight:600;
+}
+.character-photo-value{
+  font:700 .8rem "Space Grotesk", sans-serif;
+  color:var(--tinta);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* ---------- Recompensa emergente (20 / 30 / 50 / 100 puntos, local) ---------- */
+.reward-modal{
+  position:fixed;
+  inset:0;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(7,20,12,.55);
+  animation: reward-fade-in .2s ease;
+}
+.reward-modal[hidden]{ display:none; }
+.reward-modal-box{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  max-width:min(340px, 86vw);
+  padding:28px 26px 22px;
+  background:#ffffff;
+  border-radius:16px;
+  box-shadow: 0 24px 60px -18px rgba(0,0,0,.55);
+  text-align:center;
+  animation: reward-pop .28s cubic-bezier(.34,1.56,.64,1);
+}
+.reward-modal-icon{ font-size:2.4rem; line-height:1; }
+.reward-modal-title{
+  font:700 1.05rem "Space Grotesk", sans-serif;
+  color:var(--tinta);
+}
+.reward-modal-sub{
+  font-size:.85rem;
+  color:#5b6b64;
+}
+.reward-modal-close{
+  margin-top:10px;
+  padding:8px 22px;
+  border:none;
+  border-radius:10px;
+  background:var(--rojo);
+  color:#fff;
+  font:700 .8rem "Space Grotesk", sans-serif;
+  cursor:pointer;
+}
+.reward-modal-close:hover{ filter:brightness(1.06); }
+@keyframes reward-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes reward-pop{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }

@@ -14,6 +14,7 @@ const MS_ANTES_DE_LIBERAR_COLOR = 8000;
 const VIDA_MAXIMA = 20;
 const DANIO_ATAQUE = 5;
 const DURACION_DEFENSA_MS = 900;
+const PUNTOS_BALON_VALIDOS = new Set([5, 7]);
 const PERSONAJES = new Set([
   "BLUE", "GREEN", "ORANGE", "PINK", "SILVER",
   "ALSILVER", "BLACKMATTER", "ERROR", "EVA", "FAST", "GOLDENBOY",
@@ -269,6 +270,20 @@ class GameState {
       this._guardarJugador(objetivo);
     }
     return { ok: true, impacto: true, bloqueado, atacante, objetivo, danio: bloqueado ? 0 : DANIO_ATAQUE };
+  }
+
+  // El balón (blanco 5 pts / amarillo 7 pts) es la única forma de anotar:
+  // el cliente detecta que cruzó la línea de meta y avisa aquí cuántos
+  // puntos vale ese balón; el servidor valida el valor (solo 5 o 7 son
+  // posibles) y suma al score real, igual que hacía "marcar" antes.
+  anotarGol(jugadorId, puntos) {
+    const jugador = this.jugadores.get(jugadorId);
+    if (!jugador || !jugador.conectado) return { ok: false };
+    if (!PUNTOS_BALON_VALIDOS.has(puntos)) return { ok: false };
+    jugador.score += puntos;
+    jugador.ultimaAccion = Date.now();
+    this._guardarJugador(jugador);
+    return { ok: true, jugador };
   }
 
   marcar(jugadorId, celdaId, marca) {
