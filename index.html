@@ -21,7 +21,7 @@
 
   <main class="login-wrap container-fluid py-4">
     <div class="row g-4 justify-content-center">
-      <div class="col-12 col-lg-5">
+      <div class="col-12 col-lg-6">
         <div class="card login-card shadow-sm h-100">
           <div class="card-body p-4">
             <p class="login-sub card-text">Elige tu personaje, confirma tu tarjeta y entra a la cancha compartida.</p>
@@ -29,17 +29,11 @@
             <form id="login-form" class="login-form">
               <span class="login-label">1. Elige tu personaje/color</span>
 
-              <div id="personaje-carousel" class="carousel slide personaje-carousel mb-2">
+              <div id="personaje-carousel" class="personaje-carousel mb-2">
                 <div class="carousel-indicators" id="personaje-indicators"></div>
                 <div class="carousel-inner" id="personaje-inner"></div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#personaje-carousel" data-bs-slide="prev">
-                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                  <span class="visually-hidden">Anterior</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#personaje-carousel" data-bs-slide="next">
-                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                  <span class="visually-hidden">Siguiente</span>
-                </button>
+                <button class="carousel-control-prev" type="button" id="personaje-prev" aria-label="Personaje anterior">‹</button>
+                <button class="carousel-control-next" type="button" id="personaje-next" aria-label="Personaje siguiente">›</button>
               </div>
               <p class="personaje-elegido-text" id="personaje-elegido-text">Ningún personaje elegido todavía.</p>
 
@@ -54,20 +48,19 @@
         </div>
       </div>
 
-      <div class="col-12 col-lg-4 d-flex align-items-stretch">
-        <img id="portada" src="assets/img/portada.png" alt="Portada" class="img-fluid rounded shadow-sm w-100" style="object-fit:cover;">
-      </div>
-
-      <div class="col-12 col-lg-3">
-        <aside class="card login-card login-lobby h-100">
-          <div class="card-body">
-            <div class="minimap-heading">
-              <span>Sala de espera</span>
-              <span id="lobby-count">0 conectados</span>
+      <div class="col-12 col-lg-6">
+        <div class="side-stack">
+          <img id="portada" src="assets/img/portada.png" alt="Portada" class="side-stack-image rounded shadow-sm">
+          <aside class="card login-card login-lobby side-stack-lobby">
+            <div class="card-body">
+              <div class="minimap-heading">
+                <span>Sala de espera</span>
+                <span id="lobby-count">0 conectados</span>
+              </div>
+              <ul id="lobby-list" class="lobby-list"></ul>
             </div>
-            <ul id="lobby-list" class="lobby-list"></ul>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </div>
   </main>
@@ -127,17 +120,22 @@
       personajeElegidoText.textContent = `Elegiste a ${nombresPersonajes[personaje]} · color ${coloresPorPersonaje[personaje]}.`;
     }
 
+    let personajeIndex = 0;
+    function mostrarPersonajeIndex(index) {
+      personajeIndex = (index + personajes.length) % personajes.length;
+      [...personajeInner.children].forEach((item, i) => item.classList.toggle("active", i === personajeIndex));
+      [...personajeIndicators.children].forEach((dot, i) => dot.classList.toggle("active", i === personajeIndex));
+    }
+
     personajes.forEach((personaje, index) => {
       const indicator = document.createElement("button");
       indicator.type = "button";
-      indicator.setAttribute("data-bs-target", "#personaje-carousel");
-      indicator.setAttribute("data-bs-slide-to", index);
-      indicator.setAttribute("aria-label", nombresPersonajes[personaje]);
-      if (index === 0) { indicator.className = "active"; indicator.setAttribute("aria-current", "true"); }
+      indicator.setAttribute("aria-label", personaje);
+      indicator.addEventListener("click", () => mostrarPersonajeIndex(index));
       personajeIndicators.appendChild(indicator);
 
       const item = document.createElement("div");
-      item.className = `carousel-item character-card${index === 0 ? " active" : ""}`;
+      item.className = "carousel-item character-card";
       item.dataset.personaje = personaje;
       item.innerHTML = `
         <img src="assets/img/pj/PERSONAJE/${personaje}.png" alt="${nombresPersonajes[personaje]}">
@@ -149,6 +147,9 @@
       item.querySelector(".character-card-pick").addEventListener("click", () => marcarElegido(personaje));
       personajeInner.appendChild(item);
     });
+    document.getElementById("personaje-prev").addEventListener("click", () => mostrarPersonajeIndex(personajeIndex - 1));
+    document.getElementById("personaje-next").addEventListener("click", () => mostrarPersonajeIndex(personajeIndex + 1));
+    mostrarPersonajeIndex(0);
 
     function pintarLobby(jugadores) {
       const conectados = jugadores.filter((j) => j.conectado);
