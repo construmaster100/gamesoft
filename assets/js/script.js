@@ -17,12 +17,13 @@ const svg = document.getElementById("pitch-svg");
 
 const ROWS = 7;
 const COLS = 10;
+const FIXED_VIEWBOX = "0 0 1000 562.5";
 
 const QUAD = {
-  TL: { x: 142, y: 98 },
-  TR: { x: 858, y: 98 },
-  BL: { x: 26,  y: 432 },
-  BR: { x: 974, y: 432 },
+  TL: { x: 160, y: 145 },
+  TR: { x: 834, y: 145 },
+  BL: { x: 162, y: 410 },
+  BR: { x: 837, y: 410 },
 };
 
 const lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
@@ -51,24 +52,6 @@ function blockBBox(r, c, rSpan, cSpan) {
   };
 }
 
-const VIEW_ROWS = 3;
-const VIEW_COLS = 4;
-
-function viewportOrigin(r, c) {
-  const rWin = Math.max(0, Math.min(r - 1, ROWS - VIEW_ROWS));
-  const cWin = Math.max(0, Math.min(c - 1, COLS - VIEW_COLS));
-  return { rWin, cWin };
-}
-
-function viewportBBox(r, c) {
-  const { rWin, cWin } = viewportOrigin(r, c);
-  return blockBBox(rWin, cWin, VIEW_ROWS, VIEW_COLS);
-}
-
-function bboxToViewBox(b) {
-  return `${b.minX.toFixed(2)} ${b.minY.toFixed(2)} ${(b.maxX - b.minX).toFixed(2)} ${(b.maxY - b.minY).toFixed(2)}`;
-}
-
 function pointsToStr(points) {
   return points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 }
@@ -91,7 +74,8 @@ function zoneDescription(r, c) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Grupos base                                                            */
+/* Grupos base: la imagen contiene la grilla visual; el SVG agrega        */
+/* solamente las capas interactivas, marcas y personajes.                */
 /* ---------------------------------------------------------------------- */
 const sceneGroup      = el("g", { class: "scene-group" }, svg);
 const turfGroup        = el("g", {}, sceneGroup);
@@ -101,16 +85,14 @@ const cellsGroup       = el("g", {}, sceneGroup);
 const markGroup        = el("g", {}, sceneGroup);
 const highlightGroup   = el("g", {}, sceneGroup);
 const playersGroup     = el("g", {}, sceneGroup);
+const movementGroup    = el("g", { class: "movement-controls" }, sceneGroup);
 
 function drawPitchTexture() {
   const defs = el("defs", {}, svg);
-  const clip = el("clipPath", { id: "field-clip" }, defs);
-  el("polygon", { points: pointsToStr([QUAD.TL, QUAD.TR, QUAD.BR, QUAD.BL]) }, clip);
   el("image", {
     href: "../assets/img/CANCHA%20FUTBOL/grilla%207x10.png",
     x: 0, y: 0, width: 1000, height: 562.5,
     preserveAspectRatio: "none",
-    "clip-path": "url(#field-clip)",
   }, turfGroup);
 }
 
@@ -181,13 +163,46 @@ function actualizarMarcadorJugador(jugador) {
   marcador.setAttribute("preserveAspectRatio", "xMidYMid meet");
 }
 
+const movementButtons = {};
+const movementButtonShapes = {
+  up: "12,0 24,14 16,14 16,28 8,28 8,14 0,14",
+  down: "8,0 16,0 16,14 24,14 12,28 0,14 8,14",
+  left: "0,12 14,0 14,8 28,8 28,16 14,16 14,24",
+  right: "0,8 14,8 14,0 28,12 14,24 14,16 0,16",
+};
+
+Object.entries(movementButtonShapes).forEach(([direction, points]) => {
+  const button = el("g", { class: "movement-button", role: "button", tabindex: "0", "aria-label": `Mover ${direction}` }, movementGroup);
+  el("polygon", { points }, button);
+  button.addEventListener("click", () => requestMove(DIRS[direction].dr, DIRS[direction].dc));
+  button.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") requestMove(DIRS[direction].dr, DIRS[direction].dc);
+  });
+  movementButtons[direction] = button;
+});
+
+function refreshMovementButtons() {
+  const center = cellCenter(active.r, active.c);
+  const positions = {
+    up: { x: center.x - 14, y: center.y - 57 },
+    down: { x: center.x - 14, y: center.y + 29 },
+    left: { x: center.x - 57, y: center.y - 14 },
+    right: { x: center.x + 29, y: center.y - 14 },
+  };
+  Object.entries(positions).forEach(([direction, position]) => {
+    movementButtons[direction].setAttribute("transform", `translate(${position.x} ${position.y})`);
+    const { dr, dc } = DIRS[direction];
+    const valid = active.r + dr >= 0 && active.r + dr < ROWS && active.c + dc >= 0 && active.c + dc < COLS;
+    movementButtons[direction].classList.toggle("is-disabled", !valid);
+  });
+}
+
 /* ---------------------------------------------------------------------- */
 /* Selección de la casilla activa                                        */
 /* ---------------------------------------------------------------------- */
 let active = { r: 3, c: 4 };
 let highlightPts = cellCorners(active.r, active.c);
 const highlightPoly = el("polygon", { class: "highlight-box", points: pointsToStr(highlightPts) }, highlightGroup);
-let currentBBox = viewportBBox(active.r, active.c);
 
 function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
@@ -209,37 +224,10 @@ function tweenHighlightTo(newPts) {
   }, () => { highlightPts = newPts; });
 }
 
-function tweenViewportTo(newBBox) {
-  const from = { ...currentBBox };
-  animate(420, (t) => {
-    const cur = {
-      minX: from.minX + (newBBox.minX - from.minX) * t,
-      minY: from.minY + (newBBox.minY - from.minY) * t,
-      maxX: from.maxX + (newBBox.maxX - from.maxX) * t,
-      maxY: from.maxY + (newBBox.maxY - from.maxY) * t,
-    };
-    svg.setAttribute("viewBox", bboxToViewBox(cur));
-  }, () => { currentBBox = newBBox; });
-}
-
 const DIRS = {
   up: { dr: -1, dc: 0 }, down: { dr: 1, dc: 0 },
   left: { dr: 0, dc: -1 }, right: { dr: 0, dc: 1 },
 };
-const panButtons = {
-  up: document.getElementById("pan-up"), down: document.getElementById("pan-down"),
-  left: document.getElementById("pan-left"), right: document.getElementById("pan-right"),
-};
-Object.entries(DIRS).forEach(([name, { dr, dc }]) => {
-  panButtons[name].addEventListener("click", () => requestMove(dr, dc));
-});
-function refreshPanButtons() {
-  Object.entries(DIRS).forEach(([name, { dr, dc }]) => {
-    const nr = active.r + dr, nc = active.c + dc;
-    panButtons[name].classList.toggle("is-visible", nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS);
-  });
-}
-
 const gallery = document.getElementById("image-gallery");
 const galleryImage = document.getElementById("gallery-image");
 const galleryCell = document.getElementById("gallery-cell");
@@ -376,7 +364,6 @@ function renderTop5(top5) {
 function applyOwnPosition(r, c) {
   active = { r, c };
   tweenHighlightTo(cellCorners(r, c));
-  tweenViewportTo(viewportBBox(r, c));
   const jugador = jugadoresMap.get(miJugadorId);
   if (jugador) {
     jugador.fila = r;
@@ -384,6 +371,7 @@ function applyOwnPosition(r, c) {
     actualizarMarcadorJugador(jugador);
   }
   refreshStatus();
+  refreshMovementButtons();
   refreshMinimapMarkers();
 }
 
@@ -432,10 +420,10 @@ async function iniciar() {
   active = { r: miJugador.fila, c: miJugador.columna };
   highlightPts = cellCorners(active.r, active.c);
   highlightPoly.setAttribute("points", pointsToStr(highlightPts));
-  currentBBox = viewportBBox(active.r, active.c);
-  svg.setAttribute("viewBox", bboxToViewBox(currentBBox));
-  refreshPanButtons();
+  svg.setAttribute("viewBox", FIXED_VIEWBOX);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
   refreshStatus();
+  refreshMovementButtons();
 
   playerScoreEl.textContent = miJugador.score;
   refreshOwnHealth(miJugador.vida);

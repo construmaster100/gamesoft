@@ -14,7 +14,23 @@ const MS_ANTES_DE_LIBERAR_COLOR = 8000;
 const VIDA_MAXIMA = 20;
 const DANIO_ATAQUE = 5;
 const DURACION_DEFENSA_MS = 900;
-const PERSONAJES = new Set(["BLUE", "GREEN", "ORANGE", "PINK", "SILVER"]);
+const PERSONAJES = new Set([
+  "BLUE", "GREEN", "ORANGE", "PINK", "SILVER",
+  "ALSILVER", "BLACKMATTER", "ERROR", "EVA", "FAST", "GOLDENBOY",
+]);
+const COLOR_POR_PERSONAJE = {
+  BLUE: "azul",
+  GREEN: "verde",
+  ORANGE: "naranja",
+  PINK: "rosa",
+  SILVER: "negro",
+  ALSILVER: "blanco",
+  BLACKMATTER: "morado",
+  ERROR: "rojo",
+  EVA: "cian",
+  FAST: "amarillo",
+  GOLDENBOY: "dorado",
+};
 
 const PALETA = [
   { id: "rojo", nombre: "Rojo", hex: "#e63946" },
@@ -27,6 +43,7 @@ const PALETA = [
   { id: "cian", nombre: "Cian", hex: "#17a2b8" },
   { id: "blanco", nombre: "Blanco", hex: "#f5f5f5" },
   { id: "negro", nombre: "Negro", hex: "#1c1c1c" },
+  { id: "dorado", nombre: "Dorado", hex: "#d4af37" },
 ];
 const PALETA_IDS = new Set(PALETA.map((c) => c.id));
 
@@ -154,6 +171,8 @@ class GameState {
   }
 
   unirse({ nombre, color, personaje, jugadorId, socketId }) {
+    const personajeElegido = PERSONAJES.has(personaje) ? personaje : "BLUE";
+    const colorAsignado = COLOR_POR_PERSONAJE[personajeElegido];
     if (jugadorId && this.jugadores.has(jugadorId)) {
       const jugador = this.jugadores.get(jugadorId);
       const timer = this.timersDesconexion.get(jugadorId);
@@ -163,15 +182,15 @@ class GameState {
       }
       jugador.conectado = true;
       jugador.socketId = socketId;
-      if (PERSONAJES.has(personaje)) jugador.personaje = personaje;
+      jugador.personaje = personajeElegido;
+      jugador.color = colorAsignado;
       jugador.ultimaAccion = Date.now();
       return { ok: true, jugador, esNuevo: false };
     }
 
     const nombreLimpio = String(nombre || "").trim().slice(0, 20);
     if (!nombreLimpio) return { ok: false, motivo: "Ingresa un nombre de usuario." };
-    if (!PALETA_IDS.has(color)) return { ok: false, motivo: "Elige un color válido." };
-    if (this.colorEnUso(color)) return { ok: false, motivo: "Ese color ya está en uso por otro jugador conectado." };
+    if (this.colorEnUso(colorAsignado)) return { ok: false, motivo: "Ese personaje ya está en uso por otro jugador conectado." };
     if (this.jugadoresConectados() >= MAX_JUGADORES) {
       return { ok: false, motivo: `La sala está llena (máximo ${MAX_JUGADORES} jugadores).` };
     }
@@ -179,8 +198,8 @@ class GameState {
     const jugador = {
       id: crypto.randomUUID(),
       nombre: nombreLimpio,
-      color,
-      personaje: PERSONAJES.has(personaje) ? personaje : "BLUE",
+      color: colorAsignado,
+      personaje: personajeElegido,
       vida: VIDA_MAXIMA,
       defendiendoHasta: 0,
       fila: Math.floor(Math.random() * ROWS),
