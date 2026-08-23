@@ -4,7 +4,7 @@
 
 Este documento registra las reglas espaciales y visuales de la cancha interactiva. Es la referencia para futuras modificaciones de ubicación, líneas, zonas, numeración y elementos del entorno.
 
-El cuadro visual **Convenciones** es únicamente informativo y no debe actualizarse automáticamente cada vez que cambie una regla. Las reglas vigentes se consultan en este archivo.
+El cuadro visual **Instrucciones** es únicamente informativo y no debe actualizarse automáticamente cada vez que cambie una regla. Las reglas vigentes se consultan en este archivo.
 
 ## Sistema de coordenadas
 
@@ -84,22 +84,29 @@ La franja blanca especial se refleja respecto al eje vertical E–F. Toda modifi
 - La tabla de puntajes está en el sidebar derecho.
 - Los jugadores conectados aparecen en la barra inferior horizontal.
 - El encabezado superior muestra `CANCHA SINCRÓNICA INTERACTIVA LA GUACHA`.
-- El cuadro Convenciones está en la parte inferior del sidebar y ocupa aproximadamente una cuarta parte de su altura.
-- El cuadro Convenciones no es la fuente normativa de las reglas: la fuente normativa es este archivo Markdown.
+- El cuadro Instrucciones está en la parte inferior del sidebar y ocupa aproximadamente una cuarta parte de su altura.
+- El cuadro Instrucciones no es la fuente normativa de las reglas: la fuente normativa es este archivo Markdown.
 
-## Objeto balón / pickup object (PO)
+## Objetos balón / pickup objects (PO)
 
-- Es un círculo, del mismo tipo visual que el punto de navegación del personaje, que ocupa exactamente una casilla.
-- La casilla de muestra inicial es `F4`.
-- Cuando el personaje camina sobre la casilla del objeto, este se "atrapa": queda fijo a la posición del personaje que lo recogió y se mueve junto con él en cada paso siguiente.
-- `X` ya no marca la casilla. Con el balón atrapado, `X` lo dispara `2 casillas` a una velocidad de `1 casilla por decisegundo` (100 ms por casilla), en la dirección de la flecha sostenida en ese momento o, si ninguna está sostenida, en la última dirección usada por el jugador. Sin el balón atrapado, `X` no hace nada.
+Hay dos balones independientes, cada uno con su propia distancia de disparo y puntaje por gol:
+
+| Balón | Forma | Casilla inicial | Distancia de disparo | Puntos por gol |
+| --- | --- | --- | --- | --- |
+| Balón blanco | Círculo, gradiente radial blanco→gris | `F4` | `2 casillas` | `5` |
+| Balón amarillo | Óvalo, gradiente radial amarillo→dorado oscuro | `E4` | `3 casillas` | `7` |
+
+- Ambos ocupan exactamente una casilla y comparten las mismas reglas de captura y disparo.
+- Cuando el personaje camina sobre la casilla de un balón, este se "atrapa": queda fijo a la posición del personaje que lo recogió y se mueve junto con él en cada paso siguiente. Los dos balones pueden estar atrapados a la vez si el jugador pasó por ambas casillas.
+- `X` ya no marca la casilla. Con al menos un balón atrapado, `X` dispara todos los balones atrapados a la vez, cada uno su propia distancia, a una velocidad de `1 casilla por decisegundo` (100 ms por casilla). Sin ningún balón atrapado, `X` no hace nada.
+- El disparo es siempre unidireccional (nunca diagonal) y preciso: la dirección es la de la flecha sostenida en ese momento o, si ninguna está sostenida, la última dirección de movimiento del jugador — reducida siempre al eje dominante (arriba/abajo/izquierda/derecha), incluso si ese último movimiento vino de un clic en una casilla lejana o en diagonal.
 - Al terminar el disparo (o si sale del tablero antes), el balón queda libre en su casilla final y puede volver a atraparse caminando sobre él.
-- Cada vez que el balón cruza la línea de meta amarilla (`J4` o `A4`, es decir entra a la casilla de marco pegada a esa línea) suma `5 unidades` al puntaje. Un mismo disparo solo puede anotar una vez.
+- Cada vez que un balón cruza la línea de meta amarilla (`J4` o `A4`, es decir entra a la casilla de marco pegada a esa línea) suma sus puntos por gol al puntaje. Un mismo disparo solo puede anotar una vez por balón.
 - El puntaje del jugador es únicamente esta suma de goles. Ocupar o visitar casillas, y presionar `X`, no otorgan puntos por sí solos.
 
 ## Acciones informativas
 
-`Marcar O` y `Pintar` se muestran como referencias informativas no interactivas dentro de Convenciones. Los atajos existentes son:
+`Marcar O` y `Pintar` se muestran como referencias informativas no interactivas dentro de Instrucciones. Los atajos existentes son:
 
 - `X`: disparar el balón atrapado (ver sección anterior).
 - `O`: marcar con O.
@@ -107,4 +114,4 @@ La franja blanca especial se refleja respecto al eje vertical E–F. Toda modifi
 
 ## Regla de mantenimiento
 
-Antes de cambiar posiciones, dimensiones, colores, numeración o grosores, actualizar primero este documento. El cuadro visual Convenciones solo debe cambiar si se solicita explícitamente modificar su contenido o presentación.
+Antes de cambiar posiciones, dimensiones, colores, numeración o grosores, actualizar primero este documento. El cuadro visual Instrucciones solo debe cambiar si se solicita explícitamente modificar su contenido o presentación.

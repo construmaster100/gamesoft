@@ -63,9 +63,6 @@ function zoneDescription(r, c) {
 /* ---------------------------------------------------------------------- */
 const sceneGroup     = el("g", { class: "scene-group" }, svg);
 const pitchGroup      = el("g", {}, sceneGroup);
-const frameGroup      = el("g", {}, sceneGroup);
-const gridGroup       = el("g", {}, sceneGroup);
-const greenBorderGroup = el("g", {}, sceneGroup);
 const specialLinesGroup = el("g", {}, sceneGroup);
 const paintGroup      = el("g", {}, sceneGroup);
 const cellsGroup      = el("g", {}, sceneGroup);
@@ -78,21 +75,17 @@ const labelsGroup     = el("g", {}, sceneGroup);
 const movementGroup   = el("g", { class: "movement-controls" }, sceneGroup);
 
 function dibujarCancha() {
-  el("rect", { x: 0, y: 0, width: 1672, height: 941, class: "pitch-surface" }, pitchGroup);
-  for (let r = 0; r <= ROWS; r++) {
-    const left = quadPoint(0, r / ROWS);
-    const right = quadPoint(1, r / ROWS);
-    const lineClass = r === 0 || r === ROWS ? "grid-line grid-line-outer" : "grid-line";
-    el("line", { x1: left.x, y1: left.y, x2: right.x, y2: right.y, class: lineClass }, gridGroup);
-  }
-  for (let c = 0; c <= COLS; c++) {
-    const top = quadPoint(c / COLS, 0);
-    const bottom = quadPoint(c / COLS, 1);
-    const lineClass = c === 0 || c === COLS
-      ? "grid-line grid-line-outer"
-      : c === 6 ? "grid-line grid-line-middle" : "grid-line";
-    el("line", { x1: top.x, y1: top.y, x2: bottom.x, y2: bottom.y, class: lineClass }, gridGroup);
-  }
+  const PITCH_PHOTO_SCALE = 0.98;
+  const pitchPhotoWidth = 1672 * PITCH_PHOTO_SCALE;
+  const pitchPhotoHeight = 941 * PITCH_PHOTO_SCALE;
+  el("image", {
+    href: "../assets/img/CANCHA%20FUTBOL/vista%20aerea.png",
+    x: 0, y: 0,
+    width: pitchPhotoWidth,
+    height: pitchPhotoHeight,
+    preserveAspectRatio: "none",
+    class: "pitch-photo",
+  }, pitchGroup);
   const greenTopLeft = quadPoint(1 / COLS, 1 / ROWS);
   const greenBottomRight = quadPoint((COLS - 1) / COLS, (ROWS - 1) / ROWS);
   el("rect", {
@@ -101,7 +94,7 @@ function dibujarCancha() {
     width: greenBottomRight.x - greenTopLeft.x,
     height: greenBottomRight.y - greenTopLeft.y,
     class: "green-border",
-  }, greenBorderGroup);
+  }, specialLinesGroup);
   const magentaLineStart = quadPoint(1 / COLS, 4.5 / ROWS);
   const magentaLineEnd = quadPoint((COLS - 1) / COLS, 4.5 / ROWS);
   el("line", {
@@ -214,9 +207,6 @@ function crearCeldas() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const idx = zoneNumber(r, c) - 1;
-      if (isOuterFrameCell(r, c)) {
-        el("polygon", { points: pointsToStr(cellCorners(r, c)), class: "outer-frame-cell" }, frameGroup);
-      }
 
       const paint = el("polygon", { points: pointsToStr(cellCorners(r, c)), class: "cell-paint" }, paintGroup);
       paintPolys[idx] = paint;
@@ -292,33 +282,47 @@ function actualizarMarcadorJugador(r, c) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Objeto "balón" / pickup object (PO): círculo que ocupa una casilla.    */
+/* Objetos "balón" / pickup objects (PO): ocupan una casilla cada uno.    */
 /* Al caminar el personaje sobre su casilla, el objeto se atrapa y queda  */
-/* fijo a la posición de quien lo recogió.                                */
+/* fijo a la posición de quien lo recogió. Cada balón tiene su propia     */
+/* distancia de disparo y puntos por gol.                                 */
 /* ---------------------------------------------------------------------- */
-let pickupObject = null;
+const pickups = [];
 
-function dibujarPickupObject(r, c) {
-  const center = cellCenter(r, c);
-  const corners = cellCorners(r, c);
-  const radius = Math.min(corners[1].x - corners[0].x, corners[3].y - corners[0].y) * 0.18;
-  pickupObject = {
-    r, c,
-    atrapado: false,
-    el: el("circle", {
-      cx: center.x, cy: center.y, r: radius,
-      class: "pickup-object",
-      "aria-label": "Objeto balón",
-    }, pickupGroup),
-  };
+function crearGradientesPickup() {
+  const defs = el("defs", {}, svg);
+
+  const blanco = el("radialGradient", { id: "pickup-gradient-blanco", cx: "35%", cy: "32%", r: "70%" }, defs);
+  el("stop", { offset: "0%", "stop-color": "#ffffff" }, blanco);
+  el("stop", { offset: "55%", "stop-color": "#dfe2e5" }, blanco);
+  el("stop", { offset: "100%", "stop-color": "#8a9096" }, blanco);
+
+  const amarillo = el("radialGradient", { id: "pickup-gradient-amarillo", cx: "35%", cy: "32%", r: "70%" }, defs);
+  el("stop", { offset: "0%", "stop-color": "#fffbe0" }, amarillo);
+  el("stop", { offset: "55%", "stop-color": "#f4df16" }, amarillo);
+  el("stop", { offset: "100%", "stop-color": "#a8860a" }, amarillo);
 }
 
-function actualizarPickupObject() {
-  if (!pickupObject || pickupObject.atrapado) return;
-  if (active.r === pickupObject.r && active.c === pickupObject.c) {
-    pickupObject.atrapado = true;
-    pickupObject.el.classList.add("is-pickup-caught");
-  }
+function crearPickup({ r, c, forma, colorClase, puntosPorGol, distanciaDisparo, etiqueta }) {
+  const center = cellCenter(r, c);
+  const corners = cellCorners(r, c);
+  const radioBase = Math.min(corners[1].x - corners[0].x, corners[3].y - corners[0].y) * 0.18;
+  const clase = `pickup-object ${colorClase}`;
+  const elemento = forma === "ovalo"
+    ? el("ellipse", { cx: center.x, cy: center.y, rx: radioBase * 1.4, ry: radioBase * 0.85, class: clase, "aria-label": etiqueta }, pickupGroup)
+    : el("circle", { cx: center.x, cy: center.y, r: radioBase, class: clase, "aria-label": etiqueta }, pickupGroup);
+
+  pickups.push({ r, c, atrapado: false, enMovimiento: false, el: elemento, puntosPorGol, distanciaDisparo });
+}
+
+function actualizarPickups() {
+  pickups.forEach((pickup) => {
+    if (pickup.atrapado) return;
+    if (active.r === pickup.r && active.c === pickup.c) {
+      pickup.atrapado = true;
+      pickup.el.classList.add("is-pickup-caught");
+    }
+  });
 }
 
 function dibujarJugadoresDeMuestra() {
@@ -469,6 +473,9 @@ const playersCountEl = document.getElementById("players-count");
 const playerBottomNameEl = document.getElementById("player-bottom-name");
 const playerBottomScoreEl = document.getElementById("player-bottom-score");
 const playerBottomImageEl = document.getElementById("player-bottom-image");
+const characterPhotoImageEl = document.getElementById("character-photo-image");
+const characterPhotoRegisteredEl = document.getElementById("character-photo-registered");
+const characterPhotoCharacterEl = document.getElementById("character-photo-character");
 const playerColorChoiceEl = document.getElementById("player-color-choice");
 const top5ListEl = document.getElementById("top5-list");
 const footerScoreEl = document.getElementById("footer-score");
@@ -476,8 +483,24 @@ const footerScoreEl = document.getElementById("footer-score");
 const visited = new Set();
 let golScore = 0;
 
-function sumarGol() {
-  golScore += 5;
+const UMBRALES_RECOMPENSA = [20, 30, 50, 100];
+const recompensasMostradas = new Set();
+const rewardModalEl = document.getElementById("reward-modal");
+const rewardModalSubEl = document.getElementById("reward-modal-sub");
+const rewardModalCloseEl = document.getElementById("reward-modal-close");
+rewardModalCloseEl.addEventListener("click", () => { rewardModalEl.hidden = true; });
+
+function verificarRecompensas() {
+  const umbral = UMBRALES_RECOMPENSA.find((u) => golScore >= u && !recompensasMostradas.has(u));
+  if (!umbral) return;
+  recompensasMostradas.add(umbral);
+  rewardModalSubEl.textContent = `Llegaste a ${umbral} puntos.`;
+  rewardModalEl.hidden = false;
+}
+
+function sumarGol(puntos) {
+  golScore += puntos;
+  verificarRecompensas();
   refreshStatus();
 }
 
@@ -500,29 +523,35 @@ function refreshStatus() {
   visited.add(n);
   const puntaje = golScore;
   visitedCountEl.textContent = `${visited.size} / ${ROWS * COLS}`;
-  playerBottomNameEl.innerHTML = "Jugador<br>local";
+  playerBottomNameEl.innerHTML = "<span>Jugador</span><span>Equipo</span>";
   playerBottomScoreEl.textContent = puntaje;
   footerScoreEl.textContent = puntaje;
   playerBottomImageEl.src = PERSONAJE_SRC;
+  characterPhotoImageEl.src = PERSONAJE_SRC;
+  characterPhotoRegisteredEl.textContent = "Jugador Equipo";
+  characterPhotoCharacterEl.textContent = "Orange";
   playerColorChoiceEl.style.backgroundColor = "#f97316";
-  top5ListEl.innerHTML = [
-    [1, "Jugador local", puntaje],
-    [2, "Ana Ríos", 0],
-    [3, "Mateo Gómez", 0],
-    [4, "Sofía León", 0],
-  ].map(([position, name, score]) => `<tr><td>${position}</td><td>${name}</td><td class="score-value">${score}</td></tr>`).join("");
+  const MAX_JUGADORES_TABLA = 10;
+  const filasTabla = [[1, "Jugador local", puntaje]];
+  for (let posicion = 2; posicion <= MAX_JUGADORES_TABLA; posicion++) {
+    filasTabla.push([posicion, "—", "—"]);
+  }
+  top5ListEl.innerHTML = filasTabla
+    .map(([position, name, score]) => `<tr><td>${position}</td><td>${name}</td><td class="score-value">${score}</td></tr>`)
+    .join("");
 }
 
 function applyOwnPosition(r, c) {
   active = { r, c };
   tweenHighlightTo(cellCorners(r, c));
   actualizarMarcadorJugador(r, c);
-  actualizarPickupObject();
-  if (pickupObject && pickupObject.atrapado) {
-    const center = cellCenter(r, c);
-    pickupObject.el.setAttribute("cx", center.x);
-    pickupObject.el.setAttribute("cy", center.y);
-  }
+  actualizarPickups();
+  const center = cellCenter(r, c);
+  pickups.forEach((pickup) => {
+    if (!pickup.atrapado) return;
+    pickup.el.setAttribute("cx", center.x);
+    pickup.el.setAttribute("cy", center.y);
+  });
   refreshStatus();
   refreshMovementButtons();
 }
@@ -533,52 +562,60 @@ function requestMove(dr, dc) {
   if (!dr && !dc) return;
   const nr = active.r + dr, nc = active.c + dc;
   if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return;
-  lastDirection = { dr: Math.sign(dr), dc: Math.sign(dc) };
+  // Siempre cardinal (nunca diagonal): el eje dominante gana, así el
+  // disparo del balón (que reutiliza esta dirección) es unidireccional
+  // y preciso incluso si el movimiento vino de un clic en celda lejana.
+  lastDirection = Math.abs(dr) >= Math.abs(dc)
+    ? { dr: Math.sign(dr), dc: 0 }
+    : { dr: 0, dc: Math.sign(dc) };
   applyOwnPosition(nr, nc);
 }
 
 /* ---------------------------------------------------------------------- */
-/* Disparo del balón: X lo desplaza 2 casillas en la dirección de flecha  */
-/* sostenida, o en la última dirección usada, a 1 casilla por decisegundo.*/
+/* Disparo de balones: X los desplaza su distancia propia en la dirección */
+/* de flecha sostenida, o en la última dirección usada, a 1 casilla por   */
+/* decisegundo. Cada balón atrapado se dispara en la misma dirección.     */
 /* ---------------------------------------------------------------------- */
-const DISTANCIA_DISPARO = 2;
 const VELOCIDAD_MS = 100; // 1 casilla por decisegundo
 const FILA_LINEA_META = 4;
-const PUNTOS_POR_GOL = 5;
 
 function cruzaLineaDeMeta(r, c) {
   return r === FILA_LINEA_META && (c === 0 || c === COLS - 1);
 }
 
-function liberarBalon(dr, dc) {
-  if (!pickupObject || !pickupObject.atrapado || pickupObject.enMovimiento) return;
+function dispararPickup(pickup, dr, dc) {
+  if (!pickup.atrapado || pickup.enMovimiento) return;
   if (!dr && !dc) return;
-  pickupObject.atrapado = false;
-  pickupObject.enMovimiento = true;
-  pickupObject.el.classList.remove("is-pickup-caught");
+  pickup.atrapado = false;
+  pickup.enMovimiento = true;
+  pickup.el.classList.remove("is-pickup-caught");
 
   let pasos = 0;
   let yaAnotoEsteDisparo = false;
   function paso() {
-    const nr = pickupObject.r + dr, nc = pickupObject.c + dc;
-    if (pasos >= DISTANCIA_DISPARO || nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) {
-      pickupObject.enMovimiento = false;
-      actualizarPickupObject();
+    const nr = pickup.r + dr, nc = pickup.c + dc;
+    if (pasos >= pickup.distanciaDisparo || nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) {
+      pickup.enMovimiento = false;
+      actualizarPickups();
       return;
     }
-    pickupObject.r = nr;
-    pickupObject.c = nc;
+    pickup.r = nr;
+    pickup.c = nc;
     const centro = cellCenter(nr, nc);
-    pickupObject.el.setAttribute("cx", centro.x);
-    pickupObject.el.setAttribute("cy", centro.y);
+    pickup.el.setAttribute("cx", centro.x);
+    pickup.el.setAttribute("cy", centro.y);
     if (!yaAnotoEsteDisparo && cruzaLineaDeMeta(nr, nc)) {
       yaAnotoEsteDisparo = true;
-      sumarGol();
+      sumarGol(pickup.puntosPorGol);
     }
     pasos += 1;
     setTimeout(paso, VELOCIDAD_MS);
   }
   paso();
+}
+
+function dispararAtrapados(dr, dc) {
+  pickups.filter((pickup) => pickup.atrapado && !pickup.enMovimiento).forEach((pickup) => dispararPickup(pickup, dr, dc));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -588,9 +625,11 @@ function iniciar() {
   dibujarCancha();
   crearCeldas();
   dibujarJugadoresDeMuestra();
-  dibujarPickupObject(4, 6);
+  crearGradientesPickup();
+  crearPickup({ r: 4, c: 6, forma: "circulo", colorClase: "pickup-blanco", puntosPorGol: 5, distanciaDisparo: 2, etiqueta: "Objeto balón" });
+  crearPickup({ r: 4, c: 5, forma: "ovalo", colorClase: "pickup-amarillo", puntosPorGol: 7, distanciaDisparo: 3, etiqueta: "Objeto balón ovalado" });
   actualizarMarcadorJugador(active.r, active.c);
-  actualizarPickupObject();
+  actualizarPickups();
 
   highlightPts = cellCorners(active.r, active.c);
   highlightPoly.setAttribute("points", pointsToStr(highlightPts));
@@ -619,9 +658,9 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Escape") { gallery.hidden = true; return; }
   if (e.code === "KeyX") {
     e.preventDefault();
-    if (pickupObject && pickupObject.atrapado) {
+    if (pickups.some((pickup) => pickup.atrapado)) {
       const direccion = heldArrows.size ? DIRS[[...heldArrows].pop()] : lastDirection;
-      liberarBalon(direccion.dr, direccion.dc);
+      dispararAtrapados(direccion.dr, direccion.dc);
     }
     return;
   }

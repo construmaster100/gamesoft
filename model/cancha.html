@@ -21,10 +21,6 @@
           <!-- La cancha, la grilla y las capas interactivas se montan por JavaScript. -->
         </svg>
 
-        <div class="field-caption">
-          Imagen fija · grilla 9 × 12 · WASD / flechas para caminar
-        </div>
-
         <section class="image-gallery" id="image-gallery" hidden aria-label="Imagen de la casilla seleccionada">
           <button type="button" class="gallery-close" id="gallery-close" aria-label="Cerrar galería">×</button>
           <div class="gallery-heading">
@@ -47,23 +43,8 @@
                 <span class="player-color-choice" id="player-color-choice" aria-hidden="true"></span>
                 <img id="player-bottom-image" src="../assets/img/pj/PERSONAJE/ORANGE.png" alt="Personaje del usuario">
               </div>
-              <div class="player-bottom-name" id="player-bottom-name">Jugador<br>local</div>
+              <div class="player-bottom-name" id="player-bottom-name"><span>Jugador</span><span>Equipo</span></div>
               <div class="player-bottom-score"><span>Score</span><strong id="player-bottom-score">0</strong></div>
-            </div>
-            <div class="player-bottom-card sample-card">
-              <div class="player-image-frame player-blue"><img src="../assets/img/pj/PERSONAJE/BLUE.png" alt="Personaje azul de muestra"></div>
-              <div class="player-bottom-name">Ana<br>Ríos</div>
-              <div class="player-bottom-score"><span>Score</span><strong>0</strong></div>
-            </div>
-            <div class="player-bottom-card sample-card">
-              <div class="player-image-frame player-green"><img src="../assets/img/pj/PERSONAJE/GREEN.png" alt="Personaje verde de muestra"></div>
-              <div class="player-bottom-name">Mateo<br>Gómez</div>
-              <div class="player-bottom-score"><span>Score</span><strong>0</strong></div>
-            </div>
-            <div class="player-bottom-card sample-card">
-              <div class="player-image-frame player-pink"><img src="../assets/img/pj/PERSONAJE/PINK.png" alt="Personaje rosado de muestra"></div>
-              <div class="player-bottom-name">Sofía<br>León</div>
-              <div class="player-bottom-score"><span>Score</span><strong>0</strong></div>
             </div>
           </div>
         </div>
@@ -78,7 +59,7 @@
         <div class="score-panel ranking-panel">
           <div class="dashboard-heading">
             <span>Tabla de puntajes</span>
-            <span>TOP 5</span>
+            <span>TOP 10</span>
           </div>
           <div class="table-scroll">
             <table class="score-table">
@@ -89,21 +70,46 @@
             </table>
           </div>
         </div>
-        <section class="conventions-panel" aria-label="Convenciones de la cancha">
+        <section class="character-photo-panel" aria-label="Foto del personaje">
+          <div class="character-photo-col">
+            <img id="character-photo-image" src="../assets/img/pj/PERSONAJE/ORANGE.png" alt="Personaje del usuario">
+          </div>
+          <div class="character-photo-col character-photo-info">
+            <div class="character-photo-row">
+              <span class="character-photo-label">Jugador</span>
+              <span class="character-photo-value" id="character-photo-registered">Jugador Equipo</span>
+            </div>
+            <div class="character-photo-row">
+              <span class="character-photo-label">Personaje</span>
+              <span class="character-photo-value" id="character-photo-character">Orange</span>
+            </div>
+          </div>
+        </section>
+        <section class="conventions-panel" aria-label="Instrucciones de la cancha">
           <div class="dashboard-heading">
-            <span>Convenciones</span>
+            <span>Instrucciones</span>
           </div>
           <ul class="conventions-list">
-            <li><span class="convention-swatch swatch-white-thin"></span><span>Línea interna · 1 px</span></li>
-            <li><span class="convention-swatch swatch-white-middle"></span><span>Línea E–F · 4 px</span></li>
-            <li><span class="convention-swatch swatch-white-thick"></span><span>Margen verde · 8 px</span></li>
+            <li><span class="convention-key">↑↓←→</span><span>Moverte por la grilla</span></li>
+            <li><span class="convention-key">WASD</span><span>Moverte por la grilla</span></li>
+            <li><span class="convention-key">X</span><span>Lanzar balón(es) atrapado(s)</span></li>
+            <li><span class="convention-swatch pickup-swatch pickup-swatch-amarillo"></span><span>Balón ovalado amarillo · 7 puntos</span></li>
+            <li><span class="convention-swatch pickup-swatch pickup-swatch-blanco"></span><span>Balón circular blanco · 5 puntos</span></li>
             <li><span class="convention-swatch swatch-white-middle"></span><span>Línea de área · LA</span></li>
-            <li><span class="convention-key">X</span><span>Disparar balón (2 casillas)</span></li>
             <li><span class="convention-key">O</span><span>Marcar O</span></li>
             <li><span class="convention-key">ESP</span><span>Pintar</span></li>
           </ul>
         </section>
       </aside>
+
+      <div class="reward-modal" id="reward-modal" hidden role="alertdialog" aria-label="Recompensa ganada">
+        <div class="reward-modal-box">
+          <span class="reward-modal-icon">🏆</span>
+          <span class="reward-modal-title">¡Has ganado una recompensa!</span>
+          <span class="reward-modal-sub" id="reward-modal-sub"></span>
+          <button type="button" class="reward-modal-close" id="reward-modal-close">Continuar</button>
+        </div>
+      </div>
 
       <div class="runtime-status" aria-hidden="true">
         <span id="zone-number">—</span>

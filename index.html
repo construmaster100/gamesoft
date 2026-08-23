@@ -7,48 +7,78 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="login-body">
 
-  <main class="login-wrap">
-    <section class="login-card">
+  <header class="navbar navbar-dark bg-dark px-3 px-md-4">
+    <span class="navbar-brand mb-0">
       <span class="topbar-eyebrow">CIA · Cancha Interactiva Asincrónica</span>
-      <h1 class="login-title">Entra a la cancha «CR7»</h1>
-      <p class="login-sub">Elige tu personaje, confirma tu tarjeta y entra a la cancha compartida.</p>
+      <span class="d-block h5 mb-0">Entra a la cancha «CR7»</span>
+    </span>
+  </header>
 
-      <section class="character-step" id="character-step">
-        <span class="login-label">1. Elige tu personaje y color</span>
-        <div class="character-grid" id="character-grid" role="radiogroup" aria-label="Selección de personaje"></div>
-        <button type="button" class="login-submit character-confirm" id="character-confirm" disabled>Confirmar personaje</button>
-      </section>
+  <main class="login-wrap container-fluid py-4">
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-lg-5">
+        <div class="card login-card shadow-sm h-100">
+          <div class="card-body p-4">
+            <p class="login-sub card-text">Elige tu personaje, confirma tu tarjeta y entra a la cancha compartida.</p>
 
-      <form id="login-form" class="login-form" hidden>
-        <span class="login-label">2. Datos de jugador</span>
-        <label class="login-label" for="nombre-input">Nombre de usuario</label>
-        <input id="nombre-input" class="login-input" type="text" maxlength="20" placeholder="Ej: CARLOS" autocomplete="off" required>
+            <form id="login-form" class="login-form">
+              <span class="login-label">1. Elige tu personaje/color</span>
 
-        <p id="login-error" class="login-error" hidden></p>
+              <div id="personaje-carousel" class="carousel slide personaje-carousel mb-2">
+                <div class="carousel-indicators" id="personaje-indicators"></div>
+                <div class="carousel-inner" id="personaje-inner"></div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#personaje-carousel" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#personaje-carousel" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Siguiente</span>
+                </button>
+              </div>
+              <p class="personaje-elegido-text" id="personaje-elegido-text">Ningún personaje elegido todavía.</p>
 
-        <button type="submit" class="login-submit" id="login-submit">Entrar a la cancha</button>
-      </form>
-    </section>
+              <label class="login-label" for="nombre-input">2. Nombre del jugador</label>
+              <input id="nombre-input" class="login-input form-control" type="text" maxlength="20" placeholder="Ej: CARLOS" autocomplete="off" required>
 
-    <aside class="login-card login-lobby">
-      <div class="minimap-heading">
-        <span>Sala de espera</span>
-        <span id="lobby-count">0 conectados</span>
+              <p id="login-error" class="login-error" hidden></p>
+
+              <button type="submit" class="login-submit btn" id="login-submit">Entrar a la cancha</button>
+            </form>
+          </div>
+        </div>
       </div>
-      <ul id="lobby-list" class="lobby-list"></ul>
-    </aside>
+
+      <div class="col-12 col-lg-4 d-flex align-items-stretch">
+        <img id="portada" src="assets/img/portada.png" alt="Portada" class="img-fluid rounded shadow-sm w-100" style="object-fit:cover;">
+      </div>
+
+      <div class="col-12 col-lg-3">
+        <aside class="card login-card login-lobby h-100">
+          <div class="card-body">
+            <div class="minimap-heading">
+              <span>Sala de espera</span>
+              <span id="lobby-count">0 conectados</span>
+            </div>
+            <ul id="lobby-list" class="lobby-list"></ul>
+          </div>
+        </aside>
+      </div>
+    </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="assets/js/game-client.js"></script>
   <script>
-    const characterGrid = document.getElementById("character-grid");
-    const characterStep = document.getElementById("character-step");
-    const characterConfirm = document.getElementById("character-confirm");
+    const personajeIndicators = document.getElementById("personaje-indicators");
+    const personajeInner = document.getElementById("personaje-inner");
+    const personajeElegidoText = document.getElementById("personaje-elegido-text");
     const form = document.getElementById("login-form");
     const nombreInput = document.getElementById("nombre-input");
     const errorEl = document.getElementById("login-error");
@@ -60,13 +90,19 @@
     let colorElegido = null;
     let personajeElegido = null;
 
-    const personajes = ["BLUE", "GREEN", "ORANGE", "PINK", "SILVER"];
+    const personajes = ["BLUE", "GREEN", "ORANGE", "PINK", "SILVER", "ALSILVER", "BLACKMATTER", "ERROR", "EVA", "FAST", "GOLDENBOY"];
     const nombresPersonajes = {
       BLUE: "Blue",
       GREEN: "Green",
       ORANGE: "Orange",
       PINK: "Pink",
       SILVER: "Silver",
+      ALSILVER: "Alsilver",
+      BLACKMATTER: "Black Matter",
+      ERROR: "Error",
+      EVA: "Eva",
+      FAST: "Fast",
+      GOLDENBOY: "Goldenboy",
     };
     const coloresPorPersonaje = {
       BLUE: "azul",
@@ -74,29 +110,44 @@
       ORANGE: "naranja",
       PINK: "rosa",
       SILVER: "negro",
+      ALSILVER: "blanco",
+      BLACKMATTER: "morado",
+      ERROR: "rojo",
+      EVA: "cian",
+      FAST: "amarillo",
+      GOLDENBOY: "dorado",
     };
 
-    personajes.forEach((personaje) => {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "character-card";
-      card.setAttribute("role", "radio");
-      card.setAttribute("aria-label", nombresPersonajes[personaje]);
-      card.innerHTML = `<img src="assets/img/pj/SELECCION%20DE%20PJ/${personaje}.JPG" alt=""><span>${nombresPersonajes[personaje]}</span><small>Color ${coloresPorPersonaje[personaje]}</small>`;
-      card.addEventListener("click", () => {
-        personajeElegido = personaje;
-        colorElegido = coloresPorPersonaje[personaje];
-        [...characterGrid.children].forEach((el) => el.classList.remove("is-selected"));
-        card.classList.add("is-selected");
-        characterConfirm.disabled = false;
+    function marcarElegido(personaje) {
+      personajeElegido = personaje;
+      colorElegido = coloresPorPersonaje[personaje];
+      [...personajeInner.children].forEach((item) => {
+        item.classList.toggle("is-selected", item.dataset.personaje === personaje);
       });
-      characterGrid.appendChild(card);
-    });
+      personajeElegidoText.textContent = `Elegiste a ${nombresPersonajes[personaje]} · color ${coloresPorPersonaje[personaje]}.`;
+    }
 
-    characterConfirm.addEventListener("click", () => {
-      characterStep.hidden = true;
-      form.hidden = false;
-      nombreInput.focus();
+    personajes.forEach((personaje, index) => {
+      const indicator = document.createElement("button");
+      indicator.type = "button";
+      indicator.setAttribute("data-bs-target", "#personaje-carousel");
+      indicator.setAttribute("data-bs-slide-to", index);
+      indicator.setAttribute("aria-label", nombresPersonajes[personaje]);
+      if (index === 0) { indicator.className = "active"; indicator.setAttribute("aria-current", "true"); }
+      personajeIndicators.appendChild(indicator);
+
+      const item = document.createElement("div");
+      item.className = `carousel-item character-card${index === 0 ? " active" : ""}`;
+      item.dataset.personaje = personaje;
+      item.innerHTML = `
+        <img src="assets/img/pj/PERSONAJE/${personaje}.png" alt="${nombresPersonajes[personaje]}">
+        <div class="character-card-info">
+          <span class="character-card-name">${nombresPersonajes[personaje]}</span>
+          <small>Color ${coloresPorPersonaje[personaje]}</small>
+          <button type="button" class="btn character-card-pick">Elegir este personaje</button>
+        </div>`;
+      item.querySelector(".character-card-pick").addEventListener("click", () => marcarElegido(personaje));
+      personajeInner.appendChild(item);
     });
 
     function pintarLobby(jugadores) {
@@ -139,13 +190,13 @@
       event.preventDefault();
       errorEl.hidden = true;
       const nombre = nombreInput.value.trim();
-      if (!nombre) {
-        errorEl.textContent = "Ingresa un nombre de usuario.";
+      if (!personajeElegido) {
+        errorEl.textContent = "Elige tu personaje y color.";
         errorEl.hidden = false;
         return;
       }
-      if (!colorElegido) {
-        errorEl.textContent = "Elige un color disponible.";
+      if (!nombre) {
+        errorEl.textContent = "Ingresa el nombre del jugador.";
         errorEl.hidden = false;
         return;
       }

@@ -53,6 +53,8 @@ html,body{
   font-weight:600;
   margin-bottom:4px;
 }
+.navbar .topbar-eyebrow{ color:#cbd5df; }
+.navbar .h5{ color:#fff; }
 
 .topbar-title h1{
   margin:0;
@@ -542,58 +544,76 @@ html,body{
    ========================================================================== */
 .login-body{ overflow:auto; }
 .login-wrap{
-  min-height:100vh;
-  min-height:100dvh;
-  display:grid;
-  grid-template-columns: minmax(0,1fr) minmax(240px,320px);
-  gap: clamp(12px,2vw,24px);
-  align-items:start;
+  min-height:calc(100vh - 56px);
+  min-height:calc(100dvh - 56px);
   padding: clamp(16px, 4vw, 48px);
-}
-@media (max-width: 760px){
-  .login-wrap{ grid-template-columns: 1fr; }
 }
 
 .login-card{
   background: var(--tarjeta);
   border-radius:18px;
-  padding: clamp(18px, 3vw, 32px);
   box-shadow: var(--sombra);
   border:1px solid rgba(23,34,43,.08);
 }
 
-.login-title{
-  font-family:"Space Grotesk", sans-serif;
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  margin: 10px 0 6px;
-}
 .login-sub{ color:#5b6b64; font-size:.9rem; margin:0 0 20px; max-width:52ch; }
 
-.character-step{ display:flex; flex-direction:column; gap:8px; }
-.character-grid{
-  display:grid;
-  grid-template-columns:repeat(5, minmax(0, 1fr));
-  gap:8px;
-  margin:4px 0 8px;
+.personaje-carousel{
+  margin:6px 0 10px;
+  border-radius:14px;
+  overflow:hidden;
+  background:#f1f4f1;
 }
 .character-card{
-  min-width:0;
-  padding:6px;
-  border:2px solid transparent;
-  border-radius:10px;
-  background:#f1f4f1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:16px 44px 18px;
   color:var(--tinta);
-  cursor:pointer;
-  font:600 .72rem "Space Grotesk", sans-serif;
-  transition:transform .15s ease, border-color .15s ease, background .15s ease;
+  transition:background .15s ease;
 }
-.character-card:hover{ transform:translateY(-2px); background:#e5eee7; }
-.character-card.is-selected{ border-color:var(--rojo); background:#fff; box-shadow:0 0 0 2px rgba(226,60,47,.15); }
-.character-card img{ display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px; margin-bottom:5px; }
-.character-card span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.character-card small{ display:block; margin-top:2px; color:#5b6b64; font-size:.62rem; font-weight:500; }
-.character-confirm{ margin-top:4px; }
-.character-step[hidden]{ display:none; }
+.character-card.is-selected{ background:#fff8f0; }
+.character-card img{
+  display:block;
+  width:96px;
+  height:96px;
+  object-fit:cover;
+  border-radius:12px;
+  border:2px solid transparent;
+  margin-bottom:8px;
+  box-shadow:0 3px 8px rgba(23,34,43,.18);
+}
+.character-card.is-selected img{ border-color:var(--rojo); }
+.character-card-info{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.character-card-name{ font:600 .95rem "Space Grotesk", sans-serif; }
+.character-card small{ color:#5b6b64; font-size:.72rem; font-weight:500; }
+.character-card-pick{
+  margin-top:10px;
+  padding:6px 14px;
+  border-radius:8px;
+  border:1px solid rgba(23,34,43,.15);
+  background:#fff;
+  font:600 .72rem "Space Grotesk", sans-serif;
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease;
+}
+.character-card-pick:hover{ background:#e5eee7; }
+.character-card.is-selected .character-card-pick{
+  background:var(--rojo);
+  border-color:var(--rojo);
+  color:#fff;
+}
+.personaje-carousel .carousel-control-prev,
+.personaje-carousel .carousel-control-next{ width:34px; opacity:.8; }
+.personaje-carousel .carousel-control-prev-icon,
+.personaje-carousel .carousel-control-next-icon{ filter:invert(1) grayscale(1) brightness(.4); width:1.3rem; height:1.3rem; }
+.personaje-carousel .carousel-indicators{ margin-bottom:2px; }
+.personaje-carousel .carousel-indicators [data-bs-target]{
+  width:8px; height:8px; border-radius:50%; background-color:var(--tinta); opacity:.3;
+}
+.personaje-carousel .carousel-indicators .active{ opacity:1; background-color:var(--rojo); }
+.personaje-elegido-text{ font-size:.78rem; color:#5b6b64; margin:0 0 14px; }
 
 .login-form{ display:flex; flex-direction:column; gap:8px; }
 .login-label{

@@ -14,13 +14,22 @@ const MS_ANTES_DE_LIBERAR_COLOR = 8000;
 const VIDA_MAXIMA = 20;
 const DANIO_ATAQUE = 5;
 const DURACION_DEFENSA_MS = 900;
-const PERSONAJES = new Set(["BLUE", "GREEN", "ORANGE", "PINK", "SILVER"]);
+const PERSONAJES = new Set([
+  "BLUE", "GREEN", "ORANGE", "PINK", "SILVER",
+  "ALSILVER", "BLACKMATTER", "ERROR", "EVA", "FAST", "GOLDENBOY",
+]);
 const COLOR_POR_PERSONAJE = {
   BLUE: "azul",
   GREEN: "verde",
   ORANGE: "naranja",
   PINK: "rosa",
   SILVER: "negro",
+  ALSILVER: "blanco",
+  BLACKMATTER: "morado",
+  ERROR: "rojo",
+  EVA: "cian",
+  FAST: "amarillo",
+  GOLDENBOY: "dorado",
 };
 
 const PALETA = [
@@ -34,6 +43,7 @@ const PALETA = [
   { id: "cian", nombre: "Cian", hex: "#17a2b8" },
   { id: "blanco", nombre: "Blanco", hex: "#f5f5f5" },
   { id: "negro", nombre: "Negro", hex: "#1c1c1c" },
+  { id: "dorado", nombre: "Dorado", hex: "#d4af37" },
 ];
 const PALETA_IDS = new Set(PALETA.map((c) => c.id));
 
