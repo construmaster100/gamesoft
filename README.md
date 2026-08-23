@@ -24,8 +24,8 @@ Documentación técnica completa en
 | | |
 | --- | --- |
 | Carpeta local | `D:\cancha interactiva asincronica` |
-| GitHub | [construmaster100/AVAsoft](https://github.com/construmaster100/AVAsoft), branch `cancha-svg-viewport` |
-| Render (en vivo) | https://adsoavasoft.onrender.com |
+| GitHub | [construmaster100/gamesoft](https://github.com/construmaster100/gamesoft), branch `cancha-svg-viewport` (fusionada a `main`) |
+| Render (en vivo) | https://gamesoft.onrender.com |
 
 Este repositorio es independiente de `construmaster100/MAP` (carpeta local
 `D:\FT3P`, servicio Render `englishcoding`, proyecto SENAEnglish) — son dos
@@ -45,7 +45,7 @@ marcas; abrir los `.html` como archivo local no funciona.
 ### Persistencia (opcional)
 
 Si defines `MONGODB_URI` (en `.env` local, o como variable de entorno en
-Render → el servicio `ADSOAVAsoft` → Environment), el jugador y el tablero
+Render → el servicio `gamesoft` → Environment), el jugador y el tablero
 (marcas, colores, puntajes) se guardan en MongoDB Atlas y sobreviven a un
 reinicio del proceso — por ejemplo el spin-down de Render por inactividad.
 Sin esa variable, el servidor sigue funcionando igual, solo que en memoria
