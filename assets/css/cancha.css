@@ -606,11 +606,11 @@ body{
 }
 
 .highlight-box{
-  fill: rgba(226,60,47,.14);
-  stroke: var(--rojo);
+  fill: rgba(120,124,130,.18);
+  stroke: #7a7f87;
   stroke-width:4;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 6px rgba(226,60,47,.45));
+  filter: drop-shadow(0 0 5px rgba(23,34,43,.35));
   pointer-events:none;
   vector-effect: non-scaling-stroke;
 }

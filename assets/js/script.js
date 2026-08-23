@@ -252,6 +252,7 @@ function crearCeldas() {
 /* ---------------------------------------------------------------------- */
 const marcadoresJugadores = new Map();
 const PERSONAJE_SRC = (personaje) => `../assets/img/pj/PERSONAJE/${personaje || "BLUE"}.png`;
+const MARCADOR_ZOOM = 1.35; // compensa el margen transparente de los PNG de personaje
 
 function actualizarMarcadorJugador(jugador) {
   let marcador = marcadoresJugadores.get(jugador.id);
@@ -259,13 +260,19 @@ function actualizarMarcadorJugador(jugador) {
     if (marcador) { marcador.remove(); marcadoresJugadores.delete(jugador.id); }
     return;
   }
-  const centro = cellCenter(jugador.fila + 1, jugador.columna + 1);
+  const r = jugador.fila + 1, c = jugador.columna + 1;
+  const centro = cellCenter(r, c);
+  const corners = cellCorners(r, c);
+  const cellWidth = (corners[1].x - corners[0].x) * MARCADOR_ZOOM;
+  const cellHeight = (corners[3].y - corners[0].y) * MARCADOR_ZOOM;
   if (!marcador) {
-    marcador = el("image", { width: 34, height: 34, class: "player-marker" }, playersGroup);
+    marcador = el("image", { class: "player-marker" }, playersGroup);
     marcadoresJugadores.set(jugador.id, marcador);
   }
-  marcador.setAttribute("x", centro.x - 17);
-  marcador.setAttribute("y", centro.y - 17);
+  marcador.setAttribute("x", centro.x - cellWidth / 2);
+  marcador.setAttribute("y", centro.y - cellHeight / 2);
+  marcador.setAttribute("width", cellWidth);
+  marcador.setAttribute("height", cellHeight);
   marcador.setAttribute("href", PERSONAJE_SRC(jugador.personaje));
   marcador.setAttribute("preserveAspectRatio", "xMidYMid meet");
 }
