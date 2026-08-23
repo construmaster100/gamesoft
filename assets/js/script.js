@@ -61,6 +61,18 @@ function blockCorners(r, c, rSpan, cSpan) {
 function cellCorners(r, c) { return blockCorners(r, c, 1, 1); }
 function cellCenter(r, c) { return quadPoint((c + 0.5) / COLS, (r + 0.5) / ROWS); }
 
+/* compensa el margen transparente de los PNG de personaje: el marcador y el
+   recuadro de la casilla activa comparten este mismo zoom para que ambos
+   queden del mismo tamaño visual. */
+const MARCADOR_ZOOM = 1.35;
+function scaledCellCorners(r, c, zoom) {
+  const center = cellCenter(r, c);
+  return cellCorners(r, c).map((p) => ({
+    x: center.x + (p.x - center.x) * zoom,
+    y: center.y + (p.y - center.y) * zoom,
+  }));
+}
+
 function pointsToStr(points) {
   return points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 }
@@ -252,7 +264,6 @@ function crearCeldas() {
 /* ---------------------------------------------------------------------- */
 const marcadoresJugadores = new Map();
 const PERSONAJE_SRC = (personaje) => `../assets/img/pj/PERSONAJE/${personaje || "BLUE"}.png`;
-const MARCADOR_ZOOM = 1.35; // compensa el margen transparente de los PNG de personaje
 
 function actualizarMarcadorJugador(jugador) {
   let marcador = marcadoresJugadores.get(jugador.id);
@@ -435,7 +446,7 @@ function refreshMovementButtons() {
 /* Selección de la casilla activa (en coordenadas EXTERIORES)             */
 /* ---------------------------------------------------------------------- */
 let active = { r: 4, c: 5 };
-let highlightPts = cellCorners(active.r, active.c);
+let highlightPts = scaledCellCorners(active.r, active.c, MARCADOR_ZOOM);
 const highlightPoly = el("polygon", { class: "highlight-box", points: pointsToStr(highlightPts) }, highlightGroup);
 
 function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
@@ -576,7 +587,7 @@ function renderTop5(top5) {
 
 function applyOwnPosition(r, c) {
   active = { r, c };
-  tweenHighlightTo(cellCorners(r, c));
+  tweenHighlightTo(scaledCellCorners(r, c, MARCADOR_ZOOM));
   const jugador = jugadoresMap.get(miJugadorId);
   if (jugador) {
     jugador.fila = r - 1;
@@ -641,7 +652,7 @@ async function iniciar() {
   jugadoresMap.forEach(actualizarMarcadorJugador);
 
   active = { r: miJugador.fila + 1, c: miJugador.columna + 1 };
-  highlightPts = cellCorners(active.r, active.c);
+  highlightPts = scaledCellCorners(active.r, active.c, MARCADOR_ZOOM);
   highlightPoly.setAttribute("points", pointsToStr(highlightPts));
   svg.setAttribute("viewBox", FIXED_VIEWBOX);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
