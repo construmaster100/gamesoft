@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/construmaster100/AVAsoft.git"
+    "url": "git+https://github.com/construmaster100/gamesoft.git"
   },
   "keywords": [],
   "author": "",
@@ -24,9 +24,9 @@
     "node": ">=20.19.0"
   },
   "bugs": {
-    "url": "https://github.com/construmaster100/AVAsoft/issues"
+    "url": "https://github.com/construmaster100/gamesoft/issues"
   },
-  "homepage": "https://github.com/construmaster100/AVAsoft#readme",
+  "homepage": "https://github.com/construmaster100/gamesoft#readme",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
