@@ -18,6 +18,13 @@ app.use("/assets", express.static(path.join(ROOT, "assets")));
 app.use("/pages", express.static(path.join(ROOT, "pages")));
 app.get(["/", "/index.html"], (req, res) => res.sendFile(path.join(ROOT, "index.html")));
 
+// Prototipo local standalone (sin servidor, un solo jugador) que vive en la
+// raiz del repo. No se sirve como estatico completo de ROOT (expondria
+// package.json, .env, etc.) — solo estos tres archivos puntuales.
+app.get("/cancha.html", (req, res) => res.sendFile(path.join(ROOT, "cancha.html")));
+app.get("/script.js", (req, res) => res.sendFile(path.join(ROOT, "script.js")));
+app.get("/style.css", (req, res) => res.sendFile(path.join(ROOT, "style.css")));
+
 io.on("connection", (socket) => {
   socket.on("observar", (_payload, cb) => {
     socket.join("sala-1");
