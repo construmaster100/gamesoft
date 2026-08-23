@@ -74,6 +74,15 @@ io.on("connection", (socket) => {
     io.to("sala-1").emit("jugador_actualizado", estado.serializarJugador(resultado.objetivo));
   });
 
+  socket.on("anotar_gol", ({ puntos } = {}) => {
+    const jugadorId = socket.data.jugadorId;
+    if (!jugadorId) return;
+    const resultado = estado.anotarGol(jugadorId, Number(puntos));
+    if (!resultado.ok) return;
+    io.to("sala-1").emit("jugador_actualizado", estado.serializarJugador(resultado.jugador));
+    io.to("sala-1").emit("top5_actualizado", estado.top5());
+  });
+
   socket.on("marcar", ({ celdaId, marca } = {}) => {
     const jugadorId = socket.data.jugadorId;
     if (!jugadorId) return;
